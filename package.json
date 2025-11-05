@@ -73,6 +73,11 @@
         "icon": "$(edit)"
       },
       {
+        "command": "log-analysis-gamma.changeFilterColor",
+        "title": "Change Filter Color",
+        "icon": "$(symbol-color)"
+      },
+      {
         "command": "log-analysis-gamma.addFilter",
         "title": "Add a Filter",
         "icon": "$(plus)"
@@ -144,44 +149,49 @@
           "group": "inline@2"
         },
         {
+          "command": "log-analysis-gamma.changeFilterColor",
+          "when": "view == filters-gamma && viewItem =~ /^f-/",
+          "group": "inline@3"
+        },
+        {
           "command": "log-analysis-gamma.editProject",
           "when": "view == filters-gamma.settings",
-          "group": "inline@2"
+          "group": "inline@3"
         },
         {
           "command": "log-analysis-gamma.disableHighlight",
           "when": "view == filters-gamma && viewItem =~ /-lit/",
-          "group": "inline@3"
+          "group": "inline@4"
         },
         {
           "command": "log-analysis-gamma.enableHighlight",
           "when": "view == filters-gamma && viewItem =~ /-unlit/",
-          "group": "inline@3"
+          "group": "inline@5"
         },
         {
           "command": "log-analysis-gamma.disableVisibility",
           "when": "(view == filters-gamma || view == filters-gamma.minus) && viewItem =~ /-visible/",
-          "group": "inline@4"
+          "group": "inline@6"
         },
         {
           "command": "log-analysis-gamma.enableVisibility",
           "when": "(view == filters-gamma || view == filters-gamma.minus) && viewItem =~ /-invisible/",
-          "group": "inline@4"
+          "group": "inline@6"
         },
         {
           "command": "log-analysis-gamma.deleteGroup",
           "when": "view == filters-gamma && viewItem =~ /^g-/",
-          "group": "inline@5"
+          "group": "inline@7"
         },
         {
           "command": "log-analysis-gamma.deleteFilter",
           "when": "(view == filters-gamma || view == filters-gamma.minus) && viewItem =~ /^f-/",
-          "group": "inline@5"
+          "group": "inline@7"
         },
         {
           "command": "log-analysis-gamma.deleteProject",
           "when": "view == filters-gamma.settings",
-          "group": "inline@5"
+          "group": "inline@7"
         }
       ],
       "view/title": [

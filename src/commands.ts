@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { State } from "./extension";
-import { generateRandomColor, generateSvgUri, setStatusBarMessage, getProjectSelectedIndex, setProjectSelectedFlag } from "./utils";
+import { generateRandomColor, generateSvgUri, setStatusBarMessage, getProjectSelectedIndex, setProjectSelectedFlag, getPredefinedColors } from "./utils";
 import { readSettings, saveSettings } from "./settings";
 
 function hasHighlightedFilter(state: State): boolean {
@@ -150,6 +150,49 @@ export function deleteFilter(treeItem: vscode.TreeItem, state: State) {
     state.focusProvider.update(state.groups);
     refreshEditors(state, parentItem);
   }
+}
+
+export function changeFilterColor(treeItem: vscode.TreeItem, state: State) {
+  const predefinedColors = getPredefinedColors();
+  
+  // Create quick pick items with color circles and no text
+  const colorItems: vscode.QuickPickItem[] = predefinedColors.map(colorOption => ({
+    label: colorOption.label,
+    description: "", // No text, just the color emoji
+    detail: colorOption.color
+  }));
+
+  vscode.window.showQuickPick(colorItems, {
+    placeHolder: "Select a color for the filter",
+    matchOnDescription: false,
+    matchOnDetail: false
+  }).then((selectedItem) => {
+    if (selectedItem === undefined) {
+      return;
+    }
+
+    const newColor = selectedItem.detail!;
+    const id = treeItem.id;
+
+    // Update the filter color in both regular filters and exclusion filters
+    const exFilter = state.exFilters.find(filter => (filter.id === id));
+    if (exFilter !== undefined) {
+      exFilter.color = newColor;
+      exFilter.iconPath = generateSvgUri(newColor, exFilter.isHighlighted);
+    }
+
+    state.groups.map(group => {
+      const filter = group.filters.find(filter => (filter.id === id));
+      if (filter !== undefined) {
+        filter.color = newColor;
+        filter.iconPath = generateSvgUri(newColor, filter.isHighlighted);
+      }
+    });
+
+    // Update focus provider and refresh displays
+    state.focusProvider.update(state.groups);
+    refreshEditors(state, treeItem);
+  });
 }
 
 export function addFilter(treeItem: vscode.TreeItem, state: State) {

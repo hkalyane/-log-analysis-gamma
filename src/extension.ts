@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import {
   addFilter,
   applyHighlight,
+  changeFilterColor,
   deleteFilter,
   editFilter,
   refreshEditors,
@@ -385,6 +386,18 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
   context.subscriptions.push(disposibleEditFilter);
+
+  let disposibleChangeFilterColor = vscode.commands.registerCommand(
+    "log-analysis-gamma.changeFilterColor",
+    (treeItem: vscode.TreeItem) => {
+      if (treeItem === undefined) {
+        vscode.window.showErrorMessage('This command is excuted with button in FILTERS');
+        return;
+      }
+      changeFilterColor(treeItem, state);
+    }
+  );
+  context.subscriptions.push(disposibleChangeFilterColor);
 
   let disposibleDeleteFilter = vscode.commands.registerCommand(
     "log-analysis-gamma.deleteFilter",
