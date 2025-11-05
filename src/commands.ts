@@ -277,10 +277,32 @@ export function refreshEditors(state: State) {
           color: "#888888",
         },
       });
+      
+      // Create a decoration type for removing underlines from links
+      let noUnderlineDecorationType = vscode.window.createTextEditorDecorationType({
+        textDecoration: 'none',
+        rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed,
+      });
+      
       let focusDecorationRangeArray = [
         new vscode.Range(new vscode.Position(0, 0), new vscode.Position(1, 0)),
       ];
+      
+      // Apply no-underline decoration to all lines with content (except header)
+      let noUnderlineRanges: vscode.Range[] = [];
+      for (let lineIndex = 1; lineIndex < editor.document.lineCount; lineIndex++) {
+        const line = editor.document.lineAt(lineIndex);
+        if (line.text.trim().length > 0) {
+          noUnderlineRanges.push(new vscode.Range(lineIndex, 0, lineIndex, line.text.length));
+        }
+      }
+      
       editor.setDecorations(focusDecorationType, focusDecorationRangeArray);
+      editor.setDecorations(noUnderlineDecorationType, noUnderlineRanges);
+      
+      // Store the decoration types for cleanup
+      state.decorations.push(focusDecorationType);
+      state.decorations.push(noUnderlineDecorationType);
     }
   });
   applyHighlight(state, vscode.window.visibleTextEditors);

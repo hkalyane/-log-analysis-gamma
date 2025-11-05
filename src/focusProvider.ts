@@ -7,6 +7,7 @@ import { Filter, Group } from "./utils";
 //VSCode uses this provider to generate virtual read-only files based on real files
 export class FocusProvider implements vscode.TextDocumentContentProvider {
   groupArr: Group[];
+  private lineMappings: Map<string, number[]> = new Map();
 
   constructor(groupArr: Group[]) {
     this.groupArr = groupArr;
@@ -19,6 +20,7 @@ export class FocusProvider implements vscode.TextDocumentContentProvider {
 
     // start the string with an empty line to make room for the focus mode text decoration
     let resultArr: string[] = [""];
+    let lineMapping: number[] = [0]; // Track which original line each focus line corresponds to
 
     for (let lineIdx = 0; lineIdx < sourceCode.lineCount; lineIdx++) {
       const line = sourceCode.lineAt(lineIdx).text;
@@ -30,11 +32,16 @@ export class FocusProvider implements vscode.TextDocumentContentProvider {
           let regex = filter.regex;
           if (regex.test(line)) {
             resultArr.push(line);
+            lineMapping.push(lineIdx + 1); // +1 because VS Code line numbers are 1-based
             break;
           }
         }
       }
     }
+    
+    // Store the line mapping for this document
+    this.lineMappings.set(uri.toString(), lineMapping);
+    
     return resultArr.join("\n");
   }
 
@@ -44,5 +51,19 @@ export class FocusProvider implements vscode.TextDocumentContentProvider {
   //when this function gets called, the provideTextDocumentContent will be called again
   refresh(uri: vscode.Uri): void {
     this.onDidChangeEmitter.fire(uri);
+  }
+
+  // Get the original line number for a given line in the focus document
+  getOriginalLineNumber(focusUri: string, focusLineNumber: number): number | undefined {
+    const mapping = this.lineMappings.get(focusUri);
+    if (mapping && focusLineNumber < mapping.length) {
+      return mapping[focusLineNumber];
+    }
+    return undefined;
+  }
+
+  // Get the original document URI from a focus URI
+  getOriginalUri(focusUri: vscode.Uri): vscode.Uri {
+    return vscode.Uri.parse(focusUri.path);
   }
 }

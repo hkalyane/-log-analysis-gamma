@@ -16,6 +16,7 @@ import {
 } from "./commands";
 import { FilterTreeViewProvider } from "./filterTreeViewProvider";
 import { FocusProvider } from "./focusProvider";
+import { FocusLinkProvider } from "./focusLinkProvider";
 import { Group } from "./utils";
 
 export type State = {
@@ -25,18 +26,22 @@ export type State = {
   disposableFoldingRange: vscode.Disposable | null;
   filterTreeViewProvider: FilterTreeViewProvider;
   focusProvider: FocusProvider;
+  focusLinkProvider: FocusLinkProvider;
 };
 
 export function activate(context: vscode.ExtensionContext) {
   //internal globals
   const groupArr: Group[] = [];
+  const focusProvider = new FocusProvider(groupArr);
+  const focusLinkProvider = new FocusLinkProvider(focusProvider);
   const state: State = {
     inFocusMode: false,
     groupArr,
     decorations: [],
     disposableFoldingRange: null,
     filterTreeViewProvider: new FilterTreeViewProvider(groupArr),
-    focusProvider: new FocusProvider(groupArr),
+    focusProvider: focusProvider,
+    focusLinkProvider: focusLinkProvider,
   };
   //tell vs code to open focus:... uris with state.focusProvider
   const disposableFocus = vscode.workspace.registerTextDocumentContentProvider(
@@ -44,6 +49,13 @@ export function activate(context: vscode.ExtensionContext) {
     state.focusProvider
   );
   context.subscriptions.push(disposableFocus);
+
+  //register the document link provider for focus documents
+  const disposableLinkProvider = vscode.languages.registerDocumentLinkProvider(
+    { scheme: "focus" },
+    state.focusLinkProvider
+  );
+  context.subscriptions.push(disposableLinkProvider);
   //register filterTreeViewProvider under id 'filters' which gets attached
   //to the file explorer according to package.json's contributes>views>explorer
   const view = vscode.window.createTreeView(
