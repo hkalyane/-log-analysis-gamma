@@ -41,7 +41,27 @@ export type State = {
   projectTreeViewProvider: ProjectTreeViewProvider;
   focusProvider: FocusProvider;
   globalStorageUri: vscode.Uri;
+  noUnderlineDecorationType: vscode.TextEditorDecorationType;
 };
+
+// Apply the no-underline decoration to all focus mode documents
+export function applyNoUnderlineDecoration(state: State, editor: vscode.TextEditor) {
+  if (editor.document.uri.scheme === 'focus-gamma') {
+    const ranges: vscode.Range[] = [];
+    const text = editor.document.getText();
+    const lines = text.split('\n');
+    
+    // Create ranges for all lines except the first (which is empty)
+    for (let i = 1; i < lines.length; i++) {
+      if (lines[i].trim().length > 0) {
+        const range = new vscode.Range(i, 0, i, lines[i].length);
+        ranges.push(range);
+      }
+    }
+    
+    editor.setDecorations(state.noUnderlineDecorationType, ranges);
+  }
+}
 
 export function activate(context: vscode.ExtensionContext) {
   //internal globals
@@ -59,7 +79,13 @@ export function activate(context: vscode.ExtensionContext) {
     exFilterTreeViewProvider: new ExFilterTreeViewProvider(exFilters),
     projectTreeViewProvider: new ProjectTreeViewProvider(projects),
     focusProvider: new FocusProvider(groups, exFilters),
-    globalStorageUri: context.globalStorageUri
+    globalStorageUri: context.globalStorageUri,
+    noUnderlineDecorationType: vscode.window.createTextEditorDecorationType({
+      textDecoration: 'none !important',
+      cursor: 'pointer',
+      border: 'none',
+      outline: 'none'
+    })
   };
 
   refreshSettings(state);
@@ -149,35 +175,15 @@ export function activate(context: vscode.ExtensionContext) {
   );
   context.subscriptions.push(linkProvider);
 
-  // Create a text decoration type that removes underlines for focus mode links
-  const noUnderlineDecorationType = vscode.window.createTextEditorDecorationType({
-    textDecoration: 'none',
-    cursor: 'pointer'
-  });
-
   // Apply the no-underline decoration to all focus mode documents
-  const applyNoUnderlineDecoration = (editor: vscode.TextEditor) => {
-    if (editor.document.uri.scheme === 'focus-gamma') {
-      const ranges: vscode.Range[] = [];
-      const text = editor.document.getText();
-      const lines = text.split('\n');
-      
-      // Create ranges for all lines except the first (which is empty)
-      for (let i = 1; i < lines.length; i++) {
-        if (lines[i].trim().length > 0) {
-          const range = new vscode.Range(i, 0, i, lines[i].length);
-          ranges.push(range);
-        }
-      }
-      
-      editor.setDecorations(noUnderlineDecorationType, ranges);
-    }
+  const applyNoUnderlineDecorationLocal = (editor: vscode.TextEditor) => {
+    applyNoUnderlineDecoration(state, editor);
   };
 
   // Apply decoration when editor becomes active
   vscode.window.onDidChangeActiveTextEditor((editor) => {
     if (editor) {
-      applyNoUnderlineDecoration(editor);
+      applyNoUnderlineDecorationLocal(editor);
     }
   });
 
@@ -185,13 +191,13 @@ export function activate(context: vscode.ExtensionContext) {
   vscode.workspace.onDidOpenTextDocument((document) => {
     const editor = vscode.window.activeTextEditor;
     if (editor && editor.document === document) {
-      applyNoUnderlineDecoration(editor);
+      applyNoUnderlineDecorationLocal(editor);
     }
   });
 
   // Apply decoration to currently active editor if it's a focus mode document
   if (vscode.window.activeTextEditor) {
-    applyNoUnderlineDecoration(vscode.window.activeTextEditor);
+    applyNoUnderlineDecorationLocal(vscode.window.activeTextEditor);
   }
 
   //register filterTreeViewProvider under id 'filters-gamma' which gets attached

@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { State } from "./extension";
+import { State, applyNoUnderlineDecoration } from "./extension";
 import { generateRandomColor, generateSvgUri, setStatusBarMessage, getProjectSelectedIndex, setProjectSelectedFlag, getPredefinedColors } from "./utils";
 import { readSettings, saveSettings } from "./settings";
 
@@ -303,6 +303,9 @@ export function refreshEditors(state: State, treeItem?: vscode.TreeItem) {
         new vscode.Range(new vscode.Position(0, 0), new vscode.Position(1, 0)),
       ];
       editor.setDecorations(focusDecorationType, focusDecorationRangeArray);
+      
+      // Apply no-underline decorations to remove underlines from links
+      applyNoUnderlineDecoration(state, editor);
     }
   });
   applyHighlight(state, vscode.window.visibleTextEditors);
