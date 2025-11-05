@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { Filter, Group } from "./utils";
+import { DocumentCacheManager } from "./documentCache";
 
 //Provide virtual documents as a strings that only contain lines matching shown filters.
 //These virtual documents have uris of the form "focus-gamma:<original uri>" where
@@ -21,42 +22,66 @@ export class FocusProvider implements vscode.TextDocumentContentProvider {
     let originalUri = vscode.Uri.parse(uri.path);
     let sourceCode = await vscode.workspace.openTextDocument(originalUri);
 
+    // Performance optimization: use document cache
+    const cacheManager = DocumentCacheManager.getInstance();
+    const documentCache = cacheManager.getCache(sourceCode);
+    const lines = documentCache.getLines();
+
     // start the string with an empty line to make room for the focus mode text decoration
     let resultArr: string[] = [""];
     let resultLineArr: number[] = [0];
 
+    // Performance optimization: reset exclusion filter counts efficiently
     this.exFilters.forEach(exFilter => {
       exFilter.count = 0;
     });
 
-    for (let lineIdx = 0; lineIdx < sourceCode.lineCount; lineIdx++) {
-      const line = sourceCode.lineAt(lineIdx).text;
-      for (const group of this.groups) {
-        for (const filter of group.filters) {
-          if (!filter.isShown) {
-            continue;
-          }
-          let regex = filter.regex;
-          if (regex.test(line)) {
-            let isExcluded = false;
-            this.exFilters.forEach(exFilter => {
-              if (exFilter.isShown && exFilter.regex.test(line)) {
-                isExcluded = true;
-                if (exFilter.count === undefined) {
-                  exFilter.count = 0;
-                }
-                exFilter.count++;
-              }
-            });
-            if (!isExcluded) {
-              resultArr.push(line);
-              resultLineArr.push(lineIdx);
-            }
-            break;
-          }
+    // Performance optimization: collect all active shown filters first
+    const activeShownFilters: Filter[] = [];
+    for (const group of this.groups) {
+      for (const filter of group.filters) {
+        if (filter.isShown) {
+          activeShownFilters.push(filter);
         }
       }
     }
+
+    // Early exit if no active filters
+    if (activeShownFilters.length === 0) {
+      return resultArr.join("\n");
+    }
+
+    // Performance optimization: process each line only once
+    for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
+      const line = lines[lineIdx];
+      let lineMatched = false;
+
+      // Check if line matches any active shown filter
+      for (const filter of activeShownFilters) {
+        if (filter.regex.test(line)) {
+          // Check exclusion filters
+          let isExcluded = false;
+          for (const exFilter of this.exFilters) {
+            if (exFilter.isShown && exFilter.regex.test(line)) {
+              isExcluded = true;
+              if (exFilter.count === undefined) {
+                exFilter.count = 0;
+              }
+              exFilter.count++;
+              break; // Exit early from exclusion check
+            }
+          }
+          
+          if (!isExcluded) {
+            resultArr.push(line);
+            resultLineArr.push(lineIdx);
+          }
+          lineMatched = true;
+          break; // Exit early from filter check since line is already matched
+        }
+      }
+    }
+
     if (resultLineArr.length) {
       this.documentLineMap.set(originalUri.fsPath, resultLineArr);
     }

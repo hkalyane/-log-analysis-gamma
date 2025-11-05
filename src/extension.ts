@@ -28,6 +28,7 @@ import { ExFilterTreeViewProvider } from "./exFilterTreeViewProvider";
 import { FocusProvider } from "./focusProvider";
 import { Project, Group, Filter } from "./utils";
 import { openSettings } from "./settings";
+import { DocumentCacheManager } from "./documentCache";
 
 export type State = {
   inFocusMode: boolean;
@@ -246,6 +247,11 @@ export function activate(context: vscode.ExtensionContext) {
   var disposableOnDidChangeTextDocument =
     vscode.workspace.onDidChangeTextDocument((event) => {
       console.log(`[${new Date().toISOString()}] onDidChangeTextDocument - ${vscode.window.visibleTextEditors.length}`);
+      
+      // Performance optimization: clear cache when document changes
+      const cacheManager = DocumentCacheManager.getInstance();
+      cacheManager.clearCache(event.document);
+      
       refreshEditors(state);
     });
   context.subscriptions.push(disposableOnDidChangeTextDocument);

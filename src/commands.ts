@@ -2,6 +2,8 @@ import * as vscode from "vscode";
 import { State, applyNoUnderlineDecoration } from "./extension";
 import { generateRandomColor, generateSvgUri, setStatusBarMessage, getProjectSelectedIndex, setProjectSelectedFlag, getPredefinedColors } from "./utils";
 import { readSettings, saveSettings } from "./settings";
+import { DocumentCacheManager } from "./documentCache";
+import { PerformanceUtils } from "./performanceUtils";
 
 function hasHighlightedFilter(state: State): boolean {
   let hasHighlighted: boolean = false;
@@ -22,56 +24,56 @@ export function applyHighlight(
   state: State,
   editors: readonly vscode.TextEditor[]
 ): void {
-  // remove old decorations from all the text editor using the given decorationType
-  state.decorations.forEach((decorationType) => decorationType.dispose());
+  // Performance optimization: dispose old decorations
+  PerformanceUtils.disposeDecorations(state.decorations);
   state.decorations = [];
 
-  if (!hasHighlightedFilter(state)) {
-    console.log("no highlight");
+  // Performance optimization: early exit if no highlighted filters
+  const activeFilters = PerformanceUtils.getActiveFilters(state.groups);
+  if (activeFilters.length === 0) {
+    console.log("no highlight - no active filters");
     return;
   }
 
+  const cacheManager = DocumentCacheManager.getInstance();
+
   editors.forEach((editor) => {
-    let sourceCode = editor.document.getText();
-    const sourceCodeArr = sourceCode.split("\n");
+    // Performance optimization: get cached document processing
+    const documentCache = cacheManager.getCache(editor.document);
+    const isFocusMode = PerformanceUtils.isFocusModeEditor(editor);
 
-    state.groups.forEach((group) => {
-      //apply new decorations
-      group.filters.forEach((filter) => {
-        let filterCount = 0;
-        //if filter's highlight is off, or this editor is in focus mode and filter is not shown, we don't want to put decorations
-        //especially when a specific line fits more than one filter regex and some of them are shown while others are not.
-        if (filter.isHighlighted && (!editor.document.uri.toString().startsWith('focus-gamma:') || filter.isShown)) {
-          let lineNumbers: number[] = [];
-          for (let lineIdx = 0; lineIdx < sourceCodeArr.length; lineIdx++) {
-            if (filter.regex.test(sourceCodeArr[lineIdx])) {
-              lineNumbers.push(lineIdx);
-            }
-          }
-          filterCount = lineNumbers.length;
+    // Collect all filter ranges for batching
+    const filterRanges: Array<{ filter: any; ranges: vscode.Range[] }> = [];
 
-          const decorationsArray = lineNumbers.map((lineIdx) => {
-            return new vscode.Range(
-              new vscode.Position(lineIdx, 0),
-              new vscode.Position(lineIdx, 0) //position does not matter because isWholeLine is set to true
-            );
-          });
-          let decorationType = vscode.window.createTextEditorDecorationType(
-            {
-              backgroundColor: filter.color,
-              isWholeLine: true,
-            }
-          );
-          //store the decoration type for future removal
-          state.decorations.push(decorationType);
-          editor.setDecorations(decorationType, decorationsArray);
-        }
-        //filter.count represents the count of the lines for the activeEditor, so if the current editor is active, we update the count
-        if (editor === vscode.window.activeTextEditor) {
-          filter.count = filterCount;
-        }
-      });
+    // Process each active filter once per editor
+    activeFilters.forEach((filter) => {
+      // Skip if filter should not be highlighted in current context
+      if (!filter.isHighlighted || (isFocusMode && !filter.isShown)) {
+        return;
+      }
+
+      // Performance optimization: use cached regex results
+      const ranges = documentCache.getMatchingRanges(filter.regex);
+      filterRanges.push({ filter, ranges });
+
+      // Update filter count for active editor only
+      if (editor === vscode.window.activeTextEditor) {
+        filter.count = ranges.length;
+      }
     });
+
+    // Performance optimization: batch decorations by color
+    const colorBatches = PerformanceUtils.batchDecorationsByColor(filterRanges);
+    
+    // Apply all decorations for this editor in batches
+    const newDecorations = PerformanceUtils.applyBatchedDecorations(
+      editor, 
+      colorBatches, 
+      state.decorations
+    );
+    
+    // Store decorations for later cleanup
+    state.decorations.push(...newDecorations);
   });
 }
 
@@ -103,7 +105,8 @@ export function setVisibility(
   // Update focus provider with visibility changes
   state.focusProvider.update(state.groups);
   
-  refreshEditors(state, treeItem);
+  // Performance optimization: use debounced refresh for rapid changes
+  refreshEditorsDebounced(state, treeItem, 50);
 }
 
 //turn on focus mode for the active editor. Will create a new tab if not already for the virtual document
@@ -136,7 +139,7 @@ export function deleteFilter(treeItem: vscode.TreeItem, state: State) {
     state.exFilters.splice(deleteIndex, 1);
     // Update focus provider after deleting exclusion filter
     state.focusProvider.update(state.groups);
-    refreshEditors(state);
+    refreshEditorsDebounced(state, undefined, 50);
   } else {
     // delete filter
     const parentItem = state.filterTreeViewProvider.getParentItem(treeItem);
@@ -148,7 +151,7 @@ export function deleteFilter(treeItem: vscode.TreeItem, state: State) {
     });
     // Update focus provider after deleting filter
     state.focusProvider.update(state.groups);
-    refreshEditors(state, parentItem);
+    refreshEditorsDebounced(state, parentItem, 50);
   }
 }
 
@@ -191,7 +194,7 @@ export function changeFilterColor(treeItem: vscode.TreeItem, state: State) {
 
     // Update focus provider and refresh displays
     state.focusProvider.update(state.groups);
-    refreshEditors(state, treeItem);
+    refreshEditorsDebounced(state, treeItem, 50);
   });
 }
 
@@ -223,7 +226,7 @@ export function addFilter(treeItem: vscode.TreeItem, state: State) {
       state.focusProvider.update(state.groups);
       
       const parentItem = state.filterTreeViewProvider.getParentItem(treeItem);
-      refreshEditors(state, parentItem);
+      refreshEditorsDebounced(state, parentItem, 50);
     });
 }
 
@@ -253,7 +256,7 @@ export function editFilter(treeItem: vscode.TreeItem, state: State) {
       // Update the focus provider with the modified filters
       state.focusProvider.update(state.groups);
       
-      refreshEditors(state, treeItem);
+      refreshEditorsDebounced(state, treeItem, 50);
     });
 }
 
@@ -280,7 +283,7 @@ export function setHighlight(
     });
   }
   applyHighlight(state, vscode.window.visibleTextEditors);
-  refreshEditors(state, treeItem);
+  refreshEditorsDebounced(state, treeItem, 50);
 }
 
 //refresh every visible component, including:
@@ -312,6 +315,13 @@ export function refreshEditors(state: State, treeItem?: vscode.TreeItem) {
   console.log("refreshEditors");
   state.filterTreeViewProvider.refresh(treeItem);
   state.exFilterTreeViewProvider.refresh(treeItem);
+}
+
+// Performance optimized debounced version for rapid changes
+export function refreshEditorsDebounced(state: State, treeItem?: vscode.TreeItem, delay: number = 100) {
+  PerformanceUtils.debouncedRefreshEditors(() => {
+    refreshEditors(state, treeItem);
+  }, delay);
 }
 
 export function refreshFilterTreeView(state: State, treeItem?: vscode.TreeItem) {
