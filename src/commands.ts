@@ -166,17 +166,9 @@ export function changeFilterColor(treeItem: vscode.TreeItem, state: State) {
     iconPath: new vscode.ThemeIcon("symbol-color")
   }));
 
-  // Add separator for random colors
-  colorItems.push({
-    label: "────────── Random Colors ──────────",
-    description: "",
-    detail: "",
-    kind: vscode.QuickPickItemKind.Separator
-  });
-
   // Add smart random color option
   colorItems.push({
-    label: "� Smart Random Color",
+    label: "🎲 Smart Random Color",
     description: "Random from curated palette",
     detail: "Get a random color from predefined and additional good-looking colors",
     iconPath: new vscode.ThemeIcon("symbol-color")
@@ -190,16 +182,9 @@ export function changeFilterColor(treeItem: vscode.TreeItem, state: State) {
     iconPath: new vscode.ThemeIcon("color-mode")
   });
 
-  // Add separator for recently used colors
+  // Add recently used colors if available
   const rememberedColors = UserColorMemory.getRememberedColors();
   if (rememberedColors.length > 0) {
-    colorItems.push({
-      label: "────────── Recently Used ──────────",
-      description: "",
-      detail: "",
-      kind: vscode.QuickPickItemKind.Separator
-    });
-
     // Add recently used colors
     rememberedColors.forEach((color, index) => {
       colorItems.push({
@@ -211,17 +196,9 @@ export function changeFilterColor(treeItem: vscode.TreeItem, state: State) {
     });
   }
 
-  // Add separator for custom color
-  colorItems.push({
-    label: "────────── Custom ──────────",
-    description: "",
-    detail: "",
-    kind: vscode.QuickPickItemKind.Separator
-  });
-
   // Add a custom color option
   colorItems.push({
-    label: "�🎨 Custom Color",
+    label: "Custom Color",
     description: "Enter custom hex color",
     detail: "Define your own color using hex code (e.g., #ff5733)",
     iconPath: new vscode.ThemeIcon("edit")
@@ -262,7 +239,8 @@ export function changeFilterColor(treeItem: vscode.TreeItem, state: State) {
       return;
     }
 
-    if (selectedItem.label === "🎨 Custom Color") {
+    if (selectedItem.label === "Custom Color") {
+      console.log("Custom color selected - showing input box");
       vscode.window.showInputBox({
         prompt: "Enter a custom hex color (e.g., #ff5733, #3498db, #27ae60)",
         placeHolder: "#ff5733",
