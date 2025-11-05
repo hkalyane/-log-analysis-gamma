@@ -41,7 +41,7 @@ export function applyHighlight(
         let filterCount = 0;
         //if filter's highlight is off, or this editor is in focus mode and filter is not shown, we don't want to put decorations
         //especially when a specific line fits more than one filter regex and some of them are shown while others are not.
-        if (filter.isHighlighted && (!editor.document.uri.toString().startsWith('focus-beta:') || filter.isShown)) {
+        if (filter.isHighlighted && (!editor.document.uri.toString().startsWith('focus-gamma:') || filter.isShown)) {
           let lineNumbers: number[] = [];
           for (let lineIdx = 0; lineIdx < sourceCodeArr.length; lineIdx++) {
             if (filter.regex.test(sourceCodeArr[lineIdx])) {
@@ -109,7 +109,7 @@ export function turnOnFocusMode(state: State) {
     return;
   }
   let escapedUri = editor.document.uri.toString();
-  if (escapedUri.startsWith("focus-beta:")) {
+  if (escapedUri.startsWith("focus-gamma:")) {
     //avoid creating nested focus mode documents
     vscode.window.showInformationMessage(
       "You are on focus mode virtual document already!"
@@ -117,7 +117,7 @@ export function turnOnFocusMode(state: State) {
     return;
   } else {
     //set special schema
-    let virtualUri = vscode.Uri.parse("focus-beta:" + escapedUri);
+    let virtualUri = vscode.Uri.parse("focus-gamma:" + escapedUri);
     //because of the special schema, openTextDocument will use the focusProvider
     vscode.workspace
       .openTextDocument(virtualUri)

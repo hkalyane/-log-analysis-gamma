@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { Filter, Group } from "./utils";
 
 //Provide virtual documents as a strings that only contain lines matching shown filters.
-//These virtual documents have uris of the form "focus-beta:<original uri>" where
+//These virtual documents have uris of the form "focus-gamma:<original uri>" where
 //<original uri> is the escaped uri of the original, unfocused document.
 //VSCode uses this provider to generate virtual read-only files based on real files
 export class FocusProvider implements vscode.TextDocumentContentProvider {

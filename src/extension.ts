@@ -63,16 +63,16 @@ export function activate(context: vscode.ExtensionContext) {
 
   refreshSettings(state);
 
-  //tell vs code to open focus-beta:... uris with state.focusProvider
+  //tell vs code to open focus-gamma:... uris with state.focusProvider
   const disposableFocus = vscode.workspace.registerTextDocumentContentProvider(
-    "focus-beta",
+    "focus-gamma",
     state.focusProvider
   );
   context.subscriptions.push(disposableFocus);
 
   // Command: On clicking a link in the virtual document, navigate to the corresponding line in the original file.
   const openOriginalLocation = vscode.commands.registerCommand(
-    'log-analysis-beta.openOriginalLocation',
+    'log-analysis-gamma.openOriginalLocation',
     (virtualLineIndex: number) => {
       const activeEditor = vscode.window.activeTextEditor;
       if (!activeEditor) {
@@ -85,12 +85,12 @@ export function activate(context: vscode.ExtensionContext) {
       }
       // Ensure we're operating from a virtual (focus mode) document.
       const virtualUri = activeEditor.document.uri;
-      if (!virtualUri.toString().startsWith("focus-beta:")) {
+      if (!virtualUri.toString().startsWith("focus-gamma:")) {
         vscode.window.showInformationMessage("The current document is not in focus mode.");
         return;
       }
-      // Recover the original file's URI by removing the "focus-beta:" prefix.
-      const originalUri = vscode.Uri.parse(virtualUri.path.replace(/^focus-beta:/, ''));
+      // Recover the original file's URI by removing the "focus-gamma:" prefix.
+      const originalUri = vscode.Uri.parse(virtualUri.path.replace(/^focus-gamma:/, ''));
       const documentLineMap = state.focusProvider.documentLineMap.get(originalUri.fsPath);
       if (!documentLineMap || virtualLineIndex < 0 || virtualLineIndex >= documentLineMap.length) {
         vscode.window.showErrorMessage('Invalid index.');
@@ -127,7 +127,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   // DocumentLinkProvider: Add a link to each line (starting at line 1) that executes the openOriginalLocation command.
   const linkProvider = vscode.languages.registerDocumentLinkProvider(
-    { scheme: 'focus-beta' },
+    { scheme: 'focus-gamma' },
     {
       provideDocumentLinks(document: vscode.TextDocument) {
         const links: vscode.DocumentLink[] = [];
@@ -138,7 +138,7 @@ export function activate(context: vscode.ExtensionContext) {
           console.log(`[${i}]: ${lineText}, ${linkRange}`);
           // Pass the line index as an argument to the command.
           const commandUri = vscode.Uri.parse(
-            `command:log-analysis-beta.openOriginalLocation?${encodeURIComponent(JSON.stringify([i]))}`
+            `command:log-analysis-gamma.openOriginalLocation?${encodeURIComponent(JSON.stringify([i]))}`
           );
           links.push(new vscode.DocumentLink(linkRange, commandUri));
         }
@@ -148,22 +148,67 @@ export function activate(context: vscode.ExtensionContext) {
   );
   context.subscriptions.push(linkProvider);
 
+  // Create a text decoration type that removes underlines for focus mode links
+  const noUnderlineDecorationType = vscode.window.createTextEditorDecorationType({
+    textDecoration: 'none',
+    cursor: 'pointer'
+  });
+
+  // Apply the no-underline decoration to all focus mode documents
+  const applyNoUnderlineDecoration = (editor: vscode.TextEditor) => {
+    if (editor.document.uri.scheme === 'focus-gamma') {
+      const ranges: vscode.Range[] = [];
+      const text = editor.document.getText();
+      const lines = text.split('\n');
+      
+      // Create ranges for all lines except the first (which is empty)
+      for (let i = 1; i < lines.length; i++) {
+        if (lines[i].trim().length > 0) {
+          const range = new vscode.Range(i, 0, i, lines[i].length);
+          ranges.push(range);
+        }
+      }
+      
+      editor.setDecorations(noUnderlineDecorationType, ranges);
+    }
+  };
+
+  // Apply decoration when editor becomes active
+  vscode.window.onDidChangeActiveTextEditor((editor) => {
+    if (editor) {
+      applyNoUnderlineDecoration(editor);
+    }
+  });
+
+  // Apply decoration when text document is opened
+  vscode.workspace.onDidOpenTextDocument((document) => {
+    const editor = vscode.window.activeTextEditor;
+    if (editor && editor.document === document) {
+      applyNoUnderlineDecoration(editor);
+    }
+  });
+
+  // Apply decoration to currently active editor if it's a focus mode document
+  if (vscode.window.activeTextEditor) {
+    applyNoUnderlineDecoration(vscode.window.activeTextEditor);
+  }
+
   //register filterTreeViewProvider under id 'filters' which gets attached
   //to the file explorer according to package.json's contributes>views>explorer
   const view = vscode.window.createTreeView(
-    "filters-beta",
+    "filters-gamma",
     { treeDataProvider: state.filterTreeViewProvider, showCollapseAll: true }
   );
   context.subscriptions.push(view);
 
   //register filterTreeViewProvider under id 'filters.minus' which gets attached
   //to the file explorer according to package.json's contributes>views>explorer
-  vscode.window.registerTreeDataProvider('filters-beta.minus', state.exFilterTreeViewProvider);
+  vscode.window.registerTreeDataProvider('filters-gamma.minus', state.exFilterTreeViewProvider);
 
   //register projectTreeViewProvider under id 'filters.settings' which gets attached
   //to filter_project_setting in the Activity Bar according to package.json's contributes>views>filter_project_settings
   vscode.window.registerTreeDataProvider(
-    "filters-beta.settings",
+    "filters-gamma.settings",
     state.projectTreeViewProvider);
 
   updateExplorerTitle(view, state);
@@ -182,10 +227,10 @@ export function activate(context: vscode.ExtensionContext) {
 
   var disposableOnDidCloseTextDocument = vscode.workspace.onDidCloseTextDocument((document: vscode.TextDocument) => {
     console.log(`[${new Date().toISOString()}] disposableOnDidCloseTextDocument - ${document.uri.scheme}`);
-    if (document.uri.scheme !== "focus-beta") {
+    if (document.uri.scheme !== "focus-gamma") {
       return;
     }
-    const originalUri = vscode.Uri.parse(document.uri.path.replace(/^focus-beta:/, ''));
+    const originalUri = vscode.Uri.parse(document.uri.path.replace(/^focus-gamma:/, ''));
     const deleted = state.focusProvider.documentLineMap.delete(originalUri.fsPath);
     console.log(`Removed entry for ${originalUri.fsPath}: ${deleted}`);
   });
@@ -208,15 +253,15 @@ export function activate(context: vscode.ExtensionContext) {
 
   //register commands
   let disposableAddProject = vscode.commands.registerCommand(
-    "log-analysis-beta.addProject",
+    "log-analysis-gamma.addProject",
     () => addProject(state));
   context.subscriptions.push(disposableAddProject);
 
   let disposibleEditProject = vscode.commands.registerCommand(
-    "log-analysis-beta.editProject",
+    "log-analysis-gamma.editProject",
     (treeItem: vscode.TreeItem) => {
       if (treeItem === undefined) {
-        vscode.window.showErrorMessage('This command is excuted with button in Log Analysis Beta Projects');
+        vscode.window.showErrorMessage('This command is excuted with button in Log Analysis Gamma Projects');
         return;
       }
       editProject(treeItem, state, () => {
@@ -227,10 +272,10 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(disposibleEditProject);
 
   let disposableDeleteProject = vscode.commands.registerCommand(
-    "log-analysis-beta.deleteProject",
+    "log-analysis-gamma.deleteProject",
     (treeItem: vscode.TreeItem) => {
       if (treeItem === undefined) {
-        vscode.window.showErrorMessage('This command is excuted with button in Log Analysis Beta Projects');
+        vscode.window.showErrorMessage('This command is excuted with button in Log Analysis Gamma Projects');
         return;
       }
       handleLastProjectDeletion(treeItem, state)
@@ -244,12 +289,12 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(disposableDeleteProject);
 
   let disposableOpenSettings = vscode.commands.registerCommand(
-    "log-analysis-beta.openSettings",
+    "log-analysis-gamma.openSettings",
     () => openSettings(state.globalStorageUri));
   context.subscriptions.push(disposableOpenSettings);
 
   let disposableRefreshSettings = vscode.commands.registerCommand(
-    "log-analysis-beta.refreshSettings",
+    "log-analysis-gamma.refreshSettings",
     () => {
       refreshSettings(state);
       updateExplorerTitle(view, state);
@@ -257,10 +302,10 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(disposableRefreshSettings);
 
   let disposableSelectProject = vscode.commands.registerCommand(
-    "log-analysis-beta.selectProject",
+    "log-analysis-gamma.selectProject",
     (treeItem: vscode.TreeItem) => {
       if (treeItem === undefined) {
-        vscode.window.showErrorMessage('This command is excuted with button in Log Analysis Beta Projects');
+        vscode.window.showErrorMessage('This command is excuted with button in Log Analysis Gamma Projects');
         return;
       }
       if (selectProject(treeItem, state)) {
@@ -271,12 +316,12 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(disposableSelectProject);
 
   let disposableSaveProject = vscode.commands.registerCommand(
-    "log-analysis-beta.saveProject",
+    "log-analysis-gamma.saveProject",
     () => saveProject(state));
   context.subscriptions.push(disposableSaveProject);
 
   let disposableEnableVisibility = vscode.commands.registerCommand(
-    "log-analysis-beta.enableVisibility",
+    "log-analysis-gamma.enableVisibility",
     (treeItem: vscode.TreeItem) => {
       if (treeItem === undefined) {
         vscode.window.showErrorMessage('This command is excuted with button in FILTERS');
@@ -288,7 +333,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(disposableEnableVisibility);
 
   let disposableDisableVisibility = vscode.commands.registerCommand(
-    "log-analysis-beta.disableVisibility",
+    "log-analysis-gamma.disableVisibility",
     (treeItem: vscode.TreeItem) => {
       if (treeItem === undefined) {
         vscode.window.showErrorMessage('This command is excuted with button in FILTERS');
@@ -300,13 +345,13 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(disposableDisableVisibility);
 
   let disposableTurnOnFocusMode = vscode.commands.registerCommand(
-    "log-analysis-beta.turnOnFocusMode",
+    "log-analysis-gamma.turnOnFocusMode",
     () => turnOnFocusMode(state)
   );
   context.subscriptions.push(disposableTurnOnFocusMode);
 
   let disposibleAddFilter = vscode.commands.registerCommand(
-    "log-analysis-beta.addFilter",
+    "log-analysis-gamma.addFilter",
     (treeItem: vscode.TreeItem) => {
       if (treeItem === undefined) {
         vscode.window.showErrorMessage('This command is excuted with button in FILTERS');
@@ -318,7 +363,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(disposibleAddFilter);
 
   let disposibleEditFilter = vscode.commands.registerCommand(
-    "log-analysis-beta.editFilter",
+    "log-analysis-gamma.editFilter",
     (treeItem: vscode.TreeItem) => {
       if (treeItem === undefined) {
         vscode.window.showErrorMessage('This command is excuted with button in FILTERS');
@@ -330,7 +375,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(disposibleEditFilter);
 
   let disposibleDeleteFilter = vscode.commands.registerCommand(
-    "log-analysis-beta.deleteFilter",
+    "log-analysis-gamma.deleteFilter",
     (treeItem: vscode.TreeItem) => {
       if (treeItem === undefined) {
         vscode.window.showErrorMessage('This command is excuted with button in FILTERS');
@@ -342,7 +387,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(disposibleDeleteFilter);
 
   let disposibleEnableHighlight = vscode.commands.registerCommand(
-    "log-analysis-beta.enableHighlight",
+    "log-analysis-gamma.enableHighlight",
     (treeItem: vscode.TreeItem) => {
       if (treeItem === undefined) {
         vscode.window.showErrorMessage('This command is excuted with button in FILTERS');
@@ -354,7 +399,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(disposibleEnableHighlight);
 
   let disposibleDisableHighlight = vscode.commands.registerCommand(
-    "log-analysis-beta.disableHighlight",
+    "log-analysis-gamma.disableHighlight",
     (treeItem: vscode.TreeItem) => {
       if (treeItem === undefined) {
         vscode.window.showErrorMessage('This command is excuted with button in FILTERS');
@@ -366,7 +411,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(disposibleDisableHighlight);
 
   let disposibleAddGroup = vscode.commands.registerCommand(
-    "log-analysis-beta.addGroup",
+    "log-analysis-gamma.addGroup",
     () => {
       addGroup(state);
     }
@@ -374,7 +419,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(disposibleAddGroup);
 
   let disposibleEditGroup = vscode.commands.registerCommand(
-    "log-analysis-beta.editGroup",
+    "log-analysis-gamma.editGroup",
     (treeItem: vscode.TreeItem) => {
       if (treeItem === undefined) {
         vscode.window.showErrorMessage('This command is excuted with button in FILTERS');
@@ -386,7 +431,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(disposibleEditGroup);
 
   let disposibleDeleteGroup = vscode.commands.registerCommand(
-    "log-analysis-beta.deleteGroup",
+    "log-analysis-gamma.deleteGroup",
     (treeItem: vscode.TreeItem) => {
       if (treeItem === undefined) {
         vscode.window.showErrorMessage('This command is excuted with button in FILTERS');
@@ -398,12 +443,12 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(disposibleDeleteGroup);
 
   let disposibleAddExFilter = vscode.commands.registerCommand(
-    "log-analysis-beta.addExFilter",
+    "log-analysis-gamma.addExFilter",
     () => addExFilter(state));
   context.subscriptions.push(disposibleAddExFilter);
 
   let disposibleDeleteExGroup = vscode.commands.registerCommand(
-    "log-analysis-beta.deleteExGroup",
+    "log-analysis-gamma.deleteExGroup",
     () => deleteExGroup(state));
   context.subscriptions.push(disposibleDeleteExGroup);
 }
