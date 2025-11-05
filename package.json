@@ -1,14 +1,14 @@
 {
   "name": "log-analysis-gamma",
   "displayName": "Log Analysis Gamma",
-  "description": "Advanced log analysis with colorful filters, focus mode, and enhanced features. New in v1.4.0: Interactive color picker with 15 emoji-themed colors, clean focus mode without underlines, improved project navigation, and seamless filter updates.",
+  "description": "Advanced log analysis with colorful filters, focus mode, and enhanced features. New in v1.4.2: VS Code 1.85.1 compatibility with enhanced color picker showing descriptive labels, hex codes, and custom color validation. Features 15 emoji-themed colors, clean focus mode without underlines, major performance optimizations, and seamless filter updates.",
   "publisher": "hkalyane",
   "repository": {
     "type": "git",
     "url": "https://github.com/hkalyane/log-analysis-gamma.git"
   },
   "icon": "image/icon.png",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "engines": {
     "vscode": "^1.49.0"
   },

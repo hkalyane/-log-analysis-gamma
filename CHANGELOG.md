@@ -2,9 +2,26 @@
 
 All notable changes to the "log-analysis-gamma" extension will be documented in this file.
 
+## 1.4.2
+
+### 🔧 Final Polish & Marketplace Release
+- **🎯 Reverted Icon Changes**: Restored original command icons based on user feedback for consistency
+- **📦 Marketplace Ready**: Final polished version with all VS Code 1.85.1 compatibility fixes
+- **✅ Quality Assurance**: Comprehensive testing and validation of all features
+- **📚 Updated Documentation**: Complete changelog and feature documentation for marketplace
+
 ## 1.4.1
 
-### 📝 Documentation & Marketplace Updates
+### � VS Code 1.85.1 Compatibility & Performance Optimization
+- **🎨 Enhanced Color Picker**: Added descriptive color names with emojis (🔴 Red, 🟠 Orange, etc.) for better VS Code 1.85.1 compatibility
+- **💡 Improved Color Selection**: Added hex codes in description field and helpful detail text for each color option
+- **🎯 Custom Color Support**: Added custom color option with hex validation for unlimited color choices
+- **⚡ Major Performance Optimization**: Reduced algorithm complexity from O(n³) to O(n²) for large file handling
+- **🧠 Document Caching System**: Implemented WeakMap-based caching with automatic cleanup for faster processing
+- **🔄 Debounced Refresh**: Added intelligent debouncing to prevent excessive re-rendering
+- **📦 Batched Decorations**: Optimized DOM updates with color-based batching for smoother performance
+
+### �📝 Documentation & Marketplace Updates
 - **Updated package.json description** with comprehensive feature highlights including color picker and no-underline improvements
 - **Enhanced README.md** with complete gamma rebranding and detailed new features documentation
 - **Added keywords and categories** for better marketplace discoverability
