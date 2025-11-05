@@ -1,24 +1,50 @@
-# Log Analysis Beta
+# Log Analysis Gamma
 
-[![Version](https://img.shields.io/vscode-marketplace/v/JeanTracker.log-analysis-beta.svg?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=JeanTracker.log-analysis-beta)
-[![Download](https://img.shields.io/visual-studio-marketplace/d/JeanTracker.log-analysis-beta)](https://marketplace.visualstudio.com/items?itemName=JeanTracker.log-analysis-beta)
-[![Installs](https://img.shields.io/visual-studio-marketplace/i/JeanTracker.log-analysis-beta)](https://marketplace.visualstudio.com/items?itemName=JeanTracker.log-analysis-beta)
-[![Avarage Rating](https://img.shields.io/vscode-marketplace/r/JeanTracker.log-analysis-beta.svg?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=JeanTracker.log-analysis-beta)
+[![Version](https://img.shields.io/vscode-marketplace/v/hkalyane.log-analysis-gamma.svg?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=hkalyane.log-analysis-gamma)
+[![Download](https://img.shields.io/visual-studio-marketplace/d/hkalyane.log-analysis-gamma)](https://marketplace.visualstudio.com/items?itemName=hkalyane.log-analysis-gamma)
+[![Installs](https://img.shields.io/visual-studio-marketplace/i/hkalyane.log-analysis-gamma)](https://marketplace.visualstudio.com/items?itemName=hkalyane.log-analysis-gamma)
+[![Average Rating](https://img.shields.io/vscode-marketplace/r/hkalyane.log-analysis-gamma.svg?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=hkalyane.log-analysis-gamma)
 
 Highlight your logs with colorful filters, and manipulate what to display for better log file reading. This helps you focus on log analysis and use your time efficiently.
 
 This extension is a fork of the [Log Analysis](https://github.com/SoySauceFor3/log-analysis) project, created to introduce and test new features in advance or to implement upcoming requirements. The goal of this project is to eventually contribute these enhancements back to the original Log Analysis project for long-term integration.
 We encourage you to freely share any issues or suggestions for improvement you encounter while using this extension. Your feedback is valuable and helps us enhance the project.
 
+## What's New in Gamma v1.4.0
+
+### 🎨 Interactive Color Picker
+- **15 emoji-themed color options** for better visual organization
+- **Quick color selection** with intuitive emoji color combinations
+- **Instant color preview** when changing filter colors
+
+### 🔗 Enhanced Focus Mode
+- **Clean interface** - removed underlines from clickable links while maintaining full functionality
+- **Seamless navigation** - click any filtered line to jump to the original location
+- **Improved readability** - focus on content without visual distractions
+
+### 🔄 Real-time Updates
+- **Automatic refresh** - focus mode updates instantly when filters change
+- **Better synchronization** - no more manual refresh needed when adding/editing filters
+- **Improved performance** - optimized decoration handling
+
+### 🎯 Enhanced Project Navigation
+- **Activity bar integration** - all views moved to dedicated Log Analysis Gamma activity bar
+- **Improved project switching** - seamless navigation between different log analysis setups
+- **Better organization** - cleaner interface with logical grouping
+
 ## Features
 
 - Create filters using regular expressions provided by the user
-- Highlight lines that match the filters
+- Highlight lines that match the filters with **customizable colors using interactive color picker**
+- **15 emoji-themed color options** for better visual organization and quick identification
 - Focus mode: display only lines that match your filters, hiding everything else for better readability
+- **Clean focus mode interface** - clickable links without underlines for improved readability
 - Exclude meaningless filters from the filtered content in Focus mode for more accurate log analysis
 - Organize filters into groups based on their purpose and apply changes to the entire group collectively
+- **Real-time updates** - focus mode refreshes automatically when filters change
 - Manage filters on a per-project basis to accommodate different log formats across various devices and frameworks
 - Click a filtered line in focus mode to jump directly to its corresponding location in the original document
+- **Enhanced project navigation** with dedicated activity bar integration
 
 ## Usage
 
@@ -26,7 +52,7 @@ We distinguish between [Basic Users](#basic-users) and [Advanced Users](#advance
 
 ### Basic Users
 
-Basic users simply set up and manage filter groups to use for log analysis. The Primary SideBar (`FILTERS+`/`FILTERS-`) is designed for their use, where they can configure filters within these groups without worrying about project management. They can save the filter configurations for reuse, ensuring that settings persist even after restarting VSCode. If users don’t need the advanced project management features, they can disable the ActivityBar (`Log Analysis Beta`) menu for a simpler interface.
+Basic users simply set up and manage filter groups to use for log analysis. The Primary SideBar (`FILTERS+`/`FILTERS-`) is designed for their use, where they can configure filters within these groups without worrying about project management. They can save the filter configurations for reuse, ensuring that settings persist even after restarting VSCode. If users don't need the advanced project management features, they can disable the ActivityBar (`Log Analysis Gamma`) menu for a simpler interface.
 
 #### Basic Operation
 
@@ -34,7 +60,7 @@ The basic operation for log analysis is as follows.
 
 ![default_usage](./image/default_usage.gif)
 
-For basic users, log analysis can be performed directly in the `FILTERS+` tab without needing to access the `Log Analysis Beta` menu. The `FILTERS+` tab, a **NONAME** project is automatically created and used. When saving filters, the project will be saved, and a message confirming the save will appear in the status bar. The tab will display all the necessary filter groups, where users can activate filters or control highlights to focus on log analysis using Focus Mode.
+For basic users, log analysis can be performed directly in the `FILTERS+` tab without needing to access the `Log Analysis Gamma` menu. The `FILTERS+` tab, a **NONAME** project is automatically created and used. When saving filters, the project will be saved, and a message confirming the save will appear in the status bar. The tab will display all the necessary filter groups, where users can activate filters or control highlights to focus on log analysis using Focus Mode.
 
 The left editor holds the original document, and all the lines that matches any of the filters have been highlighted. The right editor holds the focus mode of the left document, and notice that the lines which don't match any of the filters' regex are gone. The focus mode is implemented as a virtual document (read-only), and the original document is not modified.
 
@@ -98,7 +124,7 @@ In this tab, you can add exclusion filters to remove unnecessary information fro
 
 #### Focus Mode
 
-You can use `log-analysis-beta.turnOnFocusMode` command to activate focus mode for the active editor. The command has a default shortcut: `ctrl/cmd + h`, or the second icon located on the top of the tab can achieve the same goal. And as the focus mode is just another tab, you can close focus mode as how you close any vscode tab.
+You can use `log-analysis-gamma.turnOnFocusMode` command to activate focus mode for the active editor. The command has a default shortcut: `ctrl/cmd + h`, or the second icon located on the top of the tab can achieve the same goal. And as the focus mode is just another tab, you can close focus mode as how you close any vscode tab.
 
 #### Clickable Filtered Result Navigation
 
@@ -112,13 +138,13 @@ Advanced users can leverage the project management features available. For these
 
 Since logs can be accessed independently of any specific workspace or folder, these projects enable users to centralize and consistently manage their filter settings, ensuring they can switch between different log analysis setups without confusion. This flexibility allows advanced users to efficiently manage various log types, such as development logs, QA issue logs, or platform-specific logs, within distinct projects.
 
-This extension also creates a `Log Analysis Beta` in the ActivityBar.
+This extension also creates a `Log Analysis Gamma` in the ActivityBar.
 
 ![new-project](./image/new_project.gif)
 
-In the `Log Analysis Beta` menu, advanced users can add, remove, or select projects, and the selected project’s filter configuration will be reflected in the `FILTERS+` tab. After selecting a project, users will be directed to the `FILTERS+` tab, where you can see the project name. From there, users can click the add group icon to create a group, then add necessary filters within the group. To save the configured project, click the project save icon in the `FILTERS+` tab.
+In the `Log Analysis Gamma` menu, advanced users can add, remove, or select projects, and the selected project's filter configuration will be reflected in the `FILTERS+` tab. After selecting a project, users will be directed to the `FILTERS+` tab, where you can see the project name. From there, users can click the add group icon to create a group, then add necessary filters within the group. To save the configured project, click the project save icon in the `FILTERS+` tab.
 
-All filters will initially be set to the disabled state when a project is selected and loaded. Clicking the refresh icon in the `Log Analysis Beta` menu will reload the saved filter information. Advanced users can also modify the filter setup directly by editing the JSON configuration file via the settings gear icon in the `Log Analysis Beta` menu. (Note: After modifying the JSON file, users must refresh to apply the changes.)
+All filters will initially be set to the disabled state when a project is selected and loaded. Clicking the refresh icon in the `Log Analysis Gamma` menu will reload the saved filter information. Advanced users can also modify the filter setup directly by editing the JSON configuration file via the settings gear icon in the `Log Analysis Gamma` menu. (Note: After modifying the JSON file, users must refresh to apply the changes.)
 
 ## Handling Huge Files
 
