@@ -322,7 +322,7 @@ export function activate(context: vscode.ExtensionContext) {
       
       if (selectProject(treeItem, state)) {
         updateExplorerTitle(view, state);
-        vscode.commands.executeCommand('workbench.view.explorer');
+        // Stay in the current Log Analysis Gamma view instead of switching to Explorer
       }
     });
   context.subscriptions.push(disposableSelectProject);
