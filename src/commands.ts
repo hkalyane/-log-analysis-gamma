@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { State, applyNoUnderlineDecoration } from "./extension";
-import { generateRandomColor, generateSvgUri, setStatusBarMessage, getProjectSelectedIndex, setProjectSelectedFlag, getPredefinedColors } from "./utils";
+import { generateRandomColor, generateSvgUri, setStatusBarMessage, getProjectSelectedIndex, setProjectSelectedFlag, getPredefinedColors, generateSmartRandomColor, generateTrulyRandomColor, UserColorMemory } from "./utils";
 import { readSettings, saveSettings } from "./settings";
 import { DocumentCacheManager } from "./documentCache";
 import { PerformanceUtils } from "./performanceUtils";
@@ -166,9 +166,62 @@ export function changeFilterColor(treeItem: vscode.TreeItem, state: State) {
     iconPath: new vscode.ThemeIcon("symbol-color")
   }));
 
+  // Add separator for random colors
+  colorItems.push({
+    label: "────────── Random Colors ──────────",
+    description: "",
+    detail: "",
+    kind: vscode.QuickPickItemKind.Separator
+  });
+
+  // Add smart random color option
+  colorItems.push({
+    label: "� Smart Random Color",
+    description: "Random from curated palette",
+    detail: "Get a random color from predefined and additional good-looking colors",
+    iconPath: new vscode.ThemeIcon("symbol-color")
+  });
+
+  // Add truly random color option
+  colorItems.push({
+    label: "🌈 Truly Random Color",
+    description: "Generate completely random color",
+    detail: "Generate a completely random color with good saturation and lightness",
+    iconPath: new vscode.ThemeIcon("color-mode")
+  });
+
+  // Add separator for recently used colors
+  const rememberedColors = UserColorMemory.getRememberedColors();
+  if (rememberedColors.length > 0) {
+    colorItems.push({
+      label: "────────── Recently Used ──────────",
+      description: "",
+      detail: "",
+      kind: vscode.QuickPickItemKind.Separator
+    });
+
+    // Add recently used colors
+    rememberedColors.forEach((color, index) => {
+      colorItems.push({
+        label: `🕒 Recently Used #${index + 1}`,
+        description: color,
+        detail: `Previously used color (${color})`,
+        iconPath: new vscode.ThemeIcon("history")
+      });
+    });
+  }
+
+  // Add separator for custom color
+  colorItems.push({
+    label: "────────── Custom ──────────",
+    description: "",
+    detail: "",
+    kind: vscode.QuickPickItemKind.Separator
+  });
+
   // Add a custom color option
   colorItems.push({
-    label: "🎨 Custom Color",
+    label: "�🎨 Custom Color",
     description: "Enter custom hex color",
     detail: "Define your own color using hex code (e.g., #ff5733)",
     iconPath: new vscode.ThemeIcon("edit")
@@ -186,7 +239,29 @@ export function changeFilterColor(treeItem: vscode.TreeItem, state: State) {
       return;
     }
 
-    // Handle custom color option
+    let selectedColor: string;
+
+    // Handle different color selection options
+    if (selectedItem.label === "🎲 Smart Random Color") {
+      selectedColor = generateSmartRandomColor();
+      UserColorMemory.addColorToMemory(selectedColor);
+      applyColorToFilter(selectedColor, treeItem, state);
+      if (UserColorMemory.shouldShowNotifications()) {
+        vscode.window.showInformationMessage(`🎲 Applied smart random color: ${selectedColor}`);
+      }
+      return;
+    }
+
+    if (selectedItem.label === "🌈 Truly Random Color") {
+      selectedColor = generateTrulyRandomColor();
+      UserColorMemory.addColorToMemory(selectedColor);
+      applyColorToFilter(selectedColor, treeItem, state);
+      if (UserColorMemory.shouldShowNotifications()) {
+        vscode.window.showInformationMessage(`🌈 Applied truly random color: ${selectedColor}`);
+      }
+      return;
+    }
+
     if (selectedItem.label === "🎨 Custom Color") {
       vscode.window.showInputBox({
         prompt: "Enter a custom hex color (e.g., #ff5733, #3498db, #27ae60)",
@@ -197,15 +272,23 @@ export function changeFilterColor(treeItem: vscode.TreeItem, state: State) {
         }
       }).then((customColor) => {
         if (customColor) {
+          UserColorMemory.addColorToMemory(customColor);
           applyColorToFilter(customColor, treeItem, state);
         }
       });
       return;
     }
 
-    // Extract color from description for predefined colors
-    const newColor = selectedItem.description!;
-    applyColorToFilter(newColor, treeItem, state);
+    // Handle predefined colors and recently used colors
+    if (selectedItem.description && selectedItem.description.startsWith('#')) {
+      selectedColor = selectedItem.description;
+      // Add to memory if it's not a predefined color
+      const isPredefined = predefinedColors.some(c => c.color === selectedColor);
+      if (!isPredefined) {
+        UserColorMemory.addColorToMemory(selectedColor);
+      }
+      applyColorToFilter(selectedColor, treeItem, state);
+    }
   });
 }
 
@@ -231,6 +314,11 @@ function applyColorToFilter(newColor: string, treeItem: vscode.TreeItem, state: 
   // Update focus provider and refresh displays
   state.focusProvider.update(state.groups);
   refreshEditorsDebounced(state, treeItem, 50);
+}
+
+export function clearColorMemory() {
+  UserColorMemory.clearColorMemory();
+  vscode.window.showInformationMessage('🧹 Recently used colors cleared!');
 }
 
 export function addFilter(treeItem: vscode.TreeItem, state: State) {

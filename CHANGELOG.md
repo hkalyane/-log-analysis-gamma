@@ -2,6 +2,17 @@
 
 All notable changes to the "log-analysis-gamma" extension will be documented in this file.
 
+## 1.4.3
+
+### 🎲 Random Colors & Memory System
+- **🎲 Smart Random Color**: Get random colors from curated palette of beautiful, high-contrast colors
+- **🌈 Truly Random Color**: Generate completely random colors with optimal saturation and lightness
+- **🧠 Color Memory System**: Automatically remember up to 10 recently used custom colors
+- **🕒 Recently Used Section**: Quick access to previously selected colors in the color picker
+- **⚙️ Configurable Settings**: Control max remembered colors (5-20) and notification preferences
+- **🧹 Clear Memory Command**: "Clear Recently Used Colors" command to reset color history
+- **📦 Enhanced Color Picker**: Organized sections for predefined, random, recently used, and custom colors
+
 ## 1.4.2
 
 ### 🔧 Final Polish & Marketplace Release

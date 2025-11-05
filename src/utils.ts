@@ -81,3 +81,86 @@ export function setProjectSelectedFlag(projects: Project[], index: number) {
     console.log(`Invalid index: ${index}`);
   }
 }
+
+// Random color generation with smart selection
+export function generateSmartRandomColor(): string {
+  const predefinedColors = getPredefinedColors().map(c => c.color);
+  const additionalRandomColors = [
+    "#ff6b6b", "#4ecdc4", "#45b7d1", "#96ceb4", "#feca57",
+    "#ff9ff3", "#54a0ff", "#5f27cd", "#0abde3", "#00d2d3",
+    "#ff9f43", "#feca57", "#ff6348", "#ff4757", "#c44569",
+    "#f8b500", "#e17055", "#81ecec", "#74b9ff", "#a29bfe"
+  ];
+  
+  // Combine predefined and additional random colors
+  const allColors = [...predefinedColors, ...additionalRandomColors];
+  
+  // Select random color from the combined pool
+  const randomIndex = Math.floor(Math.random() * allColors.length);
+  return allColors[randomIndex];
+}
+
+// Generate truly random color
+export function generateTrulyRandomColor(): string {
+  // Generate random HSL color with good saturation and lightness
+  const hue = Math.floor(Math.random() * 360);
+  const saturation = Math.floor(Math.random() * 40) + 40; // 40-80%
+  const lightness = Math.floor(Math.random() * 30) + 35;  // 35-65%
+  
+  // Convert HSL to hex
+  const hslToHex = (h: number, s: number, l: number) => {
+    l /= 100;
+    const a = s * Math.min(l, 1 - l) / 100;
+    const f = (n: number) => {
+      const k = (n + h / 30) % 12;
+      const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+      return Math.round(255 * color).toString(16).padStart(2, '0');
+    };
+    return `#${f(0)}${f(8)}${f(4)}`;
+  };
+  
+  return hslToHex(hue, saturation, lightness);
+}
+
+// User color memory system
+export class UserColorMemory {
+  private static readonly STORAGE_KEY = 'logAnalysisGamma.userColors';
+  private static readonly MAX_COLORS_KEY = 'logAnalysisGamma.maxRememberedColors';
+  private static readonly NOTIFICATIONS_KEY = 'logAnalysisGamma.showRandomColorNotifications';
+  
+  static getRememberedColors(): string[] {
+    const stored = vscode.workspace.getConfiguration().get<string[]>(this.STORAGE_KEY, []);
+    return stored.filter(color => this.isValidHexColor(color));
+  }
+  
+  static addColorToMemory(color: string): void {
+    if (!this.isValidHexColor(color)) return;
+    
+    const maxColors = vscode.workspace.getConfiguration().get<number>(this.MAX_COLORS_KEY, 10);
+    const remembered = this.getRememberedColors();
+    
+    // Remove if already exists to avoid duplicates
+    const filtered = remembered.filter(c => c.toLowerCase() !== color.toLowerCase());
+    // Add to beginning of array
+    const updated = [color, ...filtered].slice(0, maxColors);
+    
+    // Store in workspace configuration
+    vscode.workspace.getConfiguration().update(this.STORAGE_KEY, updated, vscode.ConfigurationTarget.Global);
+  }
+  
+  static clearColorMemory(): void {
+    vscode.workspace.getConfiguration().update(this.STORAGE_KEY, [], vscode.ConfigurationTarget.Global);
+  }
+  
+  static shouldShowNotifications(): boolean {
+    return vscode.workspace.getConfiguration().get<boolean>(this.NOTIFICATIONS_KEY, true);
+  }
+  
+  static getMaxRememberedColors(): number {
+    return vscode.workspace.getConfiguration().get<number>(this.MAX_COLORS_KEY, 10);
+  }
+  
+  private static isValidHexColor(color: string): boolean {
+    return /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(color);
+  }
+}

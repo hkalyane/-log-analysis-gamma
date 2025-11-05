@@ -20,7 +20,8 @@ import {
   selectProject,
   updateExplorerTitle,
   addExFilter,
-  deleteExGroup
+  deleteExGroup,
+  clearColorMemory
 } from "./commands";
 import { FilterTreeViewProvider } from "./filterTreeViewProvider";
 import { ProjectTreeViewProvider } from "./projectTreeViewProvider";
@@ -488,6 +489,11 @@ export function activate(context: vscode.ExtensionContext) {
     "log-analysis-gamma.deleteExGroup",
     () => deleteExGroup(state));
   context.subscriptions.push(disposibleDeleteExGroup);
+
+  let disposableClearColorMemory = vscode.commands.registerCommand(
+    "log-analysis-gamma.clearColorMemory",
+    () => clearColorMemory());
+  context.subscriptions.push(disposableClearColorMemory);
 }
 
 // this method is called when your extension is deactivated
