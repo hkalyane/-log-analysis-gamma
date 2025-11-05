@@ -303,11 +303,23 @@ export function activate(context: vscode.ExtensionContext) {
 
   let disposableSelectProject = vscode.commands.registerCommand(
     "log-analysis-gamma.selectProject",
-    (treeItem: vscode.TreeItem) => {
-      if (treeItem === undefined) {
+    (projectIdOrTreeItem: string | vscode.TreeItem) => {
+      if (projectIdOrTreeItem === undefined) {
         vscode.window.showErrorMessage('This command is excuted with button in Log Analysis Gamma Projects');
         return;
       }
+      
+      // Handle both project ID string and tree item
+      let projectId: string;
+      if (typeof projectIdOrTreeItem === 'string') {
+        projectId = projectIdOrTreeItem;
+      } else {
+        projectId = projectIdOrTreeItem.id || '';
+      }
+      
+      // Create a minimal tree item with just the ID
+      const treeItem = { id: projectId } as vscode.TreeItem;
+      
       if (selectProject(treeItem, state)) {
         updateExplorerTitle(view, state);
         vscode.commands.executeCommand('workbench.view.explorer');

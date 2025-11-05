@@ -35,13 +35,16 @@ export class ProjectTreeViewProvider implements vscode.TreeDataProvider<vscode.T
 }
 
 export class ProjectItem extends vscode.TreeItem {
+  public project: Project;
+  
   constructor(project: Project) {
     super(project.name, vscode.TreeItemCollapsibleState.None);
     this.id = project.id;
+    this.project = project;
     this.command = {
-      command: 'log-analysis-beta.selectProject',
+      command: 'log-analysis-gamma.selectProject',
       title: 'Select Project',
-      arguments: [this]
+      arguments: [project.id]
     } as vscode.Command;
     if (project.selected) {
       this.iconPath = new vscode.ThemeIcon("arrow-small-right");
