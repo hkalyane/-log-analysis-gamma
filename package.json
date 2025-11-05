@@ -279,7 +279,7 @@
         {
           "id": "filter_gamma_project_setting",
           "title": "Log Analysis Gamma",
-          "icon": "$(filter-filled)"
+          "icon": "$(folder-library)"
         }
       ]
     }

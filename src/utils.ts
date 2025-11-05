@@ -54,47 +54,13 @@ export function getPredefinedColors(): { label: string; color: string; name: str
 // this icon is stored as a dataUri.
 export function generateSvgUri(
   color: string,
-  isHighlighted: boolean,
-  isEnabled: boolean = true
+  isHighlighted: boolean
 ): vscode.Uri {
-  // Enhanced SVG with better visual states and backgrounds
-  const opacity = isEnabled ? "1.0" : "0.4";
-  
-  let svgContent: string;
-  
-  if (isHighlighted) {
-    // Filled circle with gradient background for highlighted state
-    svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-      <defs>
-        <radialGradient id="grad1" cx="30%" cy="30%" r="70%">
-          <stop offset="0%" style="stop-color:${color};stop-opacity:1" />
-          <stop offset="100%" style="stop-color:${color};stop-opacity:0.7" />
-        </radialGradient>
-      </defs>
-      <circle fill="url(#grad1)" stroke="#ffffff" stroke-width="2" cx="50" cy="50" r="45" opacity="${opacity}"/>
-      <circle fill="#ffffff" cx="50" cy="50" r="6" opacity="0.9"/>
-    </svg>`;
-  } else {
-    // Outlined circle with optional disabled state
-    const strokeOpacity = isEnabled ? "1.0" : "0.3";
-    svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-      <circle stroke="${color}" fill="rgba(255,255,255,0.1)" stroke-width="8" cx="50" cy="50" r="40" 
-              opacity="${opacity}" stroke-opacity="${strokeOpacity}"/>
-      ${!isEnabled ? `<line x1="15" y1="15" x2="85" y2="85" stroke="#ff4757" stroke-width="6" opacity="0.8"/>` : ''}
-    </svg>`;
-  }
-  
+  const fullSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle fill="${color}" cx="50" cy="50" r="50"/></svg>`;
+  const emptySvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle stroke="${color}" fill="transparent" stroke-width="10" cx="50" cy="50" r="45"/></svg>`;
+  const svgContent = isHighlighted ? fullSvg : emptySvg;
   const dataUri = `data:image/svg+xml;base64,${btoa(svgContent)}`;
   return vscode.Uri.parse(dataUri);
-}
-
-// New function for activity bar icon with state
-export function generateActivityBarIcon(isActive: boolean = false): string {
-  if (isActive) {
-    return "$(filter-filled)"; // Active state
-  } else {
-    return "$(filter)"; // Inactive state  
-  }
 }
 
 export function setStatusBarMessage(message: string) {

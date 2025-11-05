@@ -57,7 +57,7 @@ export class FilterItem extends vscode.TreeItem {
     if (filter.isShown) {
       this.description = ` · ${filter.count}`;
       this.contextValue = 'f-visible';
-      this.iconPath = new vscode.ThemeIcon("bracket-error", new vscode.ThemeColor("charts.green"));
+      this.iconPath = new vscode.ThemeIcon("bracket-error");
     } else {
       this.description = '';
       this.contextValue = 'f-invisible';
