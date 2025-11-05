@@ -235,7 +235,7 @@
       }
     ],
     "views": {
-      "explorer": [
+      "filter_gamma_project_setting": [
         {
           "id": "filters-gamma",
           "name": "Filters+"
@@ -243,9 +243,7 @@
         {
           "id": "filters-gamma.minus",
           "name": "Filters-"
-        }
-      ],
-      "filter_gamma_project_setting": [
+        },
         {
           "id": "filters-gamma.settings",
           "name": "Projects"
