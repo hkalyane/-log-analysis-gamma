@@ -10,7 +10,22 @@ Highlight your logs with colorful filters, and manipulate what to display for be
 This extension is a fork of the [Log Analysis](https://github.com/SoySauceFor3/log-analysis) project, created to introduce and test new features in advance or to implement upcoming requirements. The goal of this project is to eventually contribute these enhancements back to the original Log Analysis project for long-term integration.
 We encourage you to freely share any issues or suggestions for improvement you encounter while using this extension. Your feedback is valuable and helps us enhance the project.
 
-## What's New in Gamma v1.4.0
+## What's New in Gamma v1.4.4
+
+### 🎲 Complete Color Management System
+- **Random Color Generator** - Smart random colors from curated palette or truly random mathematical generation
+- **Color Memory System** - Automatically remembers up to 10 recently used custom colors
+- **Individual Color Removal** - Remove specific colors with ❌ buttons without clearing entire history
+- **Smart UI Refresh** - Color picker automatically updates after changes
+- **Custom Hex Input** - Enter any hex color with real-time validation
+
+### 🗑️ Advanced Color Management
+- **CRUD Operations** - Full Create, Read, Update, Delete for color memory
+- **Visual Feedback** - Clear confirmation messages for all actions
+- **Auto-Persistence** - Colors saved globally across all workspaces
+- **Configurable Settings** - Control max remembered colors (5-20) and notifications
+
+## Previous Updates - Gamma v1.4.0
 
 ### 🎨 Interactive Color Picker
 - **15 emoji-themed color options** for better visual organization

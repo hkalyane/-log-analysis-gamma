@@ -2,6 +2,21 @@
 
 All notable changes to the "log-analysis-gamma" extension will be documented in this file.
 
+## 1.4.4
+
+### 🗑️ Individual Color Management
+- **❌ Remove Color Options**: Each recently used color now has an individual remove button
+- **Smart UI Refresh**: Color picker automatically reopens after removing colors to show updated list
+- **Clean Memory Management**: Remove unwanted colors without clearing entire history
+- **Visual Feedback**: Confirmation messages when colors are removed from memory
+- **Enhanced UX**: Seamless color management with intuitive remove actions
+
+### 🎨 Complete Color Management System
+- **CRUD Operations**: Full Create, Read, Update, Delete for color memory
+- **Individual Control**: Remove specific colors while keeping others
+- **Auto-Refresh**: Color picker updates in real-time after changes
+- **User-Friendly**: Clear visual indicators for all color management actions
+
 ## 1.4.3
 
 ### 🎲 Random Colors & Memory System

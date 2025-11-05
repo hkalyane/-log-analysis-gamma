@@ -1,14 +1,14 @@
 {
   "name": "log-analysis-gamma",
   "displayName": "Log Analysis Gamma",
-  "description": "Advanced log analysis with colorful filters, focus mode, and enhanced features. New in v1.4.3: Random color generator (smart and truly random), color memory system to remember recently used colors, and enhanced color picker with recently used section. Features 15 emoji-themed colors, custom colors, major performance optimizations, and VS Code 1.85.1 compatibility.",
+  "description": "Advanced log analysis with colorful filters, focus mode, and enhanced features. New in v1.4.4: Complete color management system with random color generator (smart & truly random), color memory for recently used colors, and individual color removal with ❌ buttons. Features 15 emoji-themed colors, custom hex input, major performance optimizations, and VS Code 1.85.1 compatibility.",
   "publisher": "hkalyane",
   "repository": {
     "type": "git",
     "url": "https://github.com/hkalyane/log-analysis-gamma.git"
   },
   "icon": "image/icon.png",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "engines": {
     "vscode": "^1.49.0"
   },
