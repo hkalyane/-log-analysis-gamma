@@ -99,6 +99,10 @@ export function setVisibility(
       }
     });
   }
+  
+  // Update focus provider with visibility changes
+  state.focusProvider.update(state.groups);
+  
   refreshEditors(state, treeItem);
 }
 
@@ -130,6 +134,8 @@ export function deleteFilter(treeItem: vscode.TreeItem, state: State) {
   if (deleteIndex !== -1) {
     // delete ex filter
     state.exFilters.splice(deleteIndex, 1);
+    // Update focus provider after deleting exclusion filter
+    state.focusProvider.update(state.groups);
     refreshEditors(state);
   } else {
     // delete filter
@@ -140,6 +146,8 @@ export function deleteFilter(treeItem: vscode.TreeItem, state: State) {
         group.filters.splice(deleteIndex, 1);
       }
     });
+    // Update focus provider after deleting filter
+    state.focusProvider.update(state.groups);
     refreshEditors(state, parentItem);
   }
 }
@@ -168,6 +176,9 @@ export function addFilter(treeItem: vscode.TreeItem, state: State) {
       };
       group!.filters.push(filter);
 
+      // Update the focus provider with the new filter groups
+      state.focusProvider.update(state.groups);
+      
       const parentItem = state.filterTreeViewProvider.getParentItem(treeItem);
       refreshEditors(state, parentItem);
     });
@@ -195,6 +206,10 @@ export function editFilter(treeItem: vscode.TreeItem, state: State) {
           filter.regex = new RegExp(regexStr);
         }
       });
+      
+      // Update the focus provider with the modified filters
+      state.focusProvider.update(state.groups);
+      
       refreshEditors(state, treeItem);
     });
 }
@@ -233,11 +248,11 @@ export function setHighlight(
 export function refreshEditors(state: State, treeItem?: vscode.TreeItem) {
   vscode.window.visibleTextEditors.forEach((editor) => {
     let escapedUri = editor.document.uri.toString();
-    if (escapedUri.startsWith("focus-beta:")) {
+    if (escapedUri.startsWith("focus-gamma:")) {
       state.focusProvider.refresh(editor.document.uri);
       let focusDecorationType = vscode.window.createTextEditorDecorationType({
         before: {
-          contentText: ">>>>>>>focus beta mode<<<<<<<",
+          contentText: ">>>>>>>focus gamma mode<<<<<<<",
           color: "#888888",
         },
       });
