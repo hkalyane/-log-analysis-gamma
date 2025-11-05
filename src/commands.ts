@@ -158,44 +158,79 @@ export function deleteFilter(treeItem: vscode.TreeItem, state: State) {
 export function changeFilterColor(treeItem: vscode.TreeItem, state: State) {
   const predefinedColors = getPredefinedColors();
   
-  // Create quick pick items with color circles and no text
+  // Create quick pick items with better VS Code 1.85.1 compatibility
   const colorItems: vscode.QuickPickItem[] = predefinedColors.map(colorOption => ({
-    label: colorOption.label,
-    description: "", // No text, just the color emoji
-    detail: colorOption.color
+    label: `${colorOption.label} ${colorOption.name}`,
+    description: colorOption.color,
+    detail: `Use ${colorOption.name.toLowerCase()} color for highlighting (${colorOption.color})`,
+    iconPath: new vscode.ThemeIcon("symbol-color")
   }));
 
+  // Add a custom color option
+  colorItems.push({
+    label: "🎨 Custom Color",
+    description: "Enter custom hex color",
+    detail: "Define your own color using hex code (e.g., #ff5733)",
+    iconPath: new vscode.ThemeIcon("edit")
+  });
+
   vscode.window.showQuickPick(colorItems, {
-    placeHolder: "Select a color for the filter",
-    matchOnDescription: false,
-    matchOnDetail: false
+    placeHolder: "Select a color for the filter (scroll to see all options)",
+    matchOnDescription: true,
+    matchOnDetail: true,
+    title: "🎨 Filter Color Selection",
+    canPickMany: false,
+    ignoreFocusOut: false
   }).then((selectedItem) => {
     if (selectedItem === undefined) {
       return;
     }
 
-    const newColor = selectedItem.detail!;
-    const id = treeItem.id;
-
-    // Update the filter color in both regular filters and exclusion filters
-    const exFilter = state.exFilters.find(filter => (filter.id === id));
-    if (exFilter !== undefined) {
-      exFilter.color = newColor;
-      exFilter.iconPath = generateSvgUri(newColor, exFilter.isHighlighted);
+    // Handle custom color option
+    if (selectedItem.label === "🎨 Custom Color") {
+      vscode.window.showInputBox({
+        prompt: "Enter a custom hex color (e.g., #ff5733, #3498db, #27ae60)",
+        placeHolder: "#ff5733",
+        validateInput: (value) => {
+          const hexColorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+          return hexColorRegex.test(value) ? null : "Please enter a valid hex color (e.g., #ff5733)";
+        }
+      }).then((customColor) => {
+        if (customColor) {
+          applyColorToFilter(customColor, treeItem, state);
+        }
+      });
+      return;
     }
 
-    state.groups.map(group => {
-      const filter = group.filters.find(filter => (filter.id === id));
-      if (filter !== undefined) {
-        filter.color = newColor;
-        filter.iconPath = generateSvgUri(newColor, filter.isHighlighted);
-      }
-    });
-
-    // Update focus provider and refresh displays
-    state.focusProvider.update(state.groups);
-    refreshEditorsDebounced(state, treeItem, 50);
+    // Extract color from description for predefined colors
+    const newColor = selectedItem.description!;
+    applyColorToFilter(newColor, treeItem, state);
   });
+}
+
+// Helper function to apply color to filter
+function applyColorToFilter(newColor: string, treeItem: vscode.TreeItem, state: State) {
+  const id = treeItem.id;
+
+  // Update the filter color in both regular filters and exclusion filters
+  const exFilter = state.exFilters.find(filter => (filter.id === id));
+  if (exFilter !== undefined) {
+    exFilter.color = newColor;
+    exFilter.iconPath = generateSvgUri(newColor, exFilter.isHighlighted);
+  }
+
+  state.groups.map(group => {
+    const filter = group.filters.find(filter => (filter.id === id));
+    if (filter !== undefined) {
+      filter.color = newColor;
+      filter.iconPath = generateSvgUri(newColor, filter.isHighlighted);
+    }
+  });
+
+  // Update focus provider and refresh displays
+  state.focusProvider.update(state.groups);
+  refreshEditorsDebounced(state, treeItem, 50);
 }
 
 export function addFilter(treeItem: vscode.TreeItem, state: State) {

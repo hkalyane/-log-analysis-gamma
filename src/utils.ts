@@ -30,23 +30,23 @@ export function generateRandomColor(): string {
   return `hsl(${Math.floor(360 * Math.random())}, 40%, 40%)`;
 }
 
-export function getPredefinedColors(): { label: string; color: string }[] {
+export function getPredefinedColors(): { label: string; color: string; name: string }[] {
   return [
-    { label: "🔴", color: "#e74c3c" }, // Red
-    { label: "🟠", color: "#e67e22" }, // Orange  
-    { label: "🟡", color: "#f1c40f" }, // Yellow
-    { label: "🟢", color: "#27ae60" }, // Green
-    { label: "🔵", color: "#3498db" }, // Blue
-    { label: "🟣", color: "#9b59b6" }, // Purple
-    { label: "🟤", color: "#8b4513" }, // Brown
-    { label: "⚫", color: "#2c3e50" }, // Dark Gray
-    { label: "⚪", color: "#95a5a6" }, // Light Gray
-    { label: "🟥", color: "#c0392b" }, // Dark Red
-    { label: "🟧", color: "#d35400" }, // Dark Orange
-    { label: "🟨", color: "#f39c12" }, // Dark Yellow
-    { label: "🟩", color: "#16a085" }, // Teal
-    { label: "🟦", color: "#2980b9" }, // Dark Blue
-    { label: "🟪", color: "#8e44ad" }, // Dark Purple
+    { label: "🔴", color: "#e74c3c", name: "Red" },
+    { label: "🟠", color: "#e67e22", name: "Orange" },  
+    { label: "🟡", color: "#f1c40f", name: "Yellow" },
+    { label: "🟢", color: "#27ae60", name: "Green" },
+    { label: "🔵", color: "#3498db", name: "Blue" },
+    { label: "🟣", color: "#9b59b6", name: "Purple" },
+    { label: "🟤", color: "#8b4513", name: "Brown" },
+    { label: "⚫", color: "#2c3e50", name: "Dark Gray" },
+    { label: "⚪", color: "#95a5a6", name: "Light Gray" },
+    { label: "🟥", color: "#c0392b", name: "Dark Red" },
+    { label: "🟧", color: "#d35400", name: "Dark Orange" },
+    { label: "🟨", color: "#f39c12", name: "Dark Yellow" },
+    { label: "🟩", color: "#16a085", name: "Teal" },
+    { label: "🟦", color: "#2980b9", name: "Dark Blue" },
+    { label: "🟪", color: "#8e44ad", name: "Dark Purple" },
   ];
 }
 
