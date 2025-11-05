@@ -126,7 +126,7 @@ export class GroupItem extends vscode.TreeItem {
     if (group.isHighlighted) {
       if (group.isShown) {
         this.contextValue = 'g-lit-visible';
-        this.iconPath = new vscode.ThemeIcon("bracket-dot");
+        this.iconPath = new vscode.ThemeIcon("bracket-dot", new vscode.ThemeColor("charts.green"));
       } else {
         this.description = '';
         this.contextValue = 'g-lit-invisible';
@@ -136,7 +136,7 @@ export class GroupItem extends vscode.TreeItem {
       this.description = '';
       if (group.isShown) {
         this.contextValue = 'g-unlit-visible';
-        this.iconPath = new vscode.ThemeIcon("bracket");
+        this.iconPath = new vscode.ThemeIcon("bracket", new vscode.ThemeColor("charts.green"));
       } else {
         this.contextValue = 'g-unlit-invisible';
         this.iconPath = undefined;
