@@ -152,6 +152,16 @@ export class UserColorMemory {
     vscode.workspace.getConfiguration().update(this.STORAGE_KEY, [], vscode.ConfigurationTarget.Global);
   }
   
+  static removeColorFromMemory(colorToRemove: string): void {
+    if (!this.isValidHexColor(colorToRemove)) return;
+    
+    const remembered = this.getRememberedColors();
+    const filtered = remembered.filter(c => c.toLowerCase() !== colorToRemove.toLowerCase());
+    
+    // Update storage with the color removed
+    vscode.workspace.getConfiguration().update(this.STORAGE_KEY, filtered, vscode.ConfigurationTarget.Global);
+  }
+  
   static shouldShowNotifications(): boolean {
     return vscode.workspace.getConfiguration().get<boolean>(this.NOTIFICATIONS_KEY, true);
   }

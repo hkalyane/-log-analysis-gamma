@@ -193,6 +193,14 @@ export function changeFilterColor(treeItem: vscode.TreeItem, state: State) {
         detail: `Previously used color (${color})`,
         iconPath: new vscode.ThemeIcon("history")
       });
+      
+      // Add remove option for each recently used color
+      colorItems.push({
+        label: `❌ Remove Color #${index + 1}`,
+        description: color,
+        detail: `Remove ${color} from recently used colors`,
+        iconPath: new vscode.ThemeIcon("close")
+      });
     });
   }
 
@@ -240,7 +248,6 @@ export function changeFilterColor(treeItem: vscode.TreeItem, state: State) {
     }
 
     if (selectedItem.label === "Custom Color") {
-      console.log("Custom color selected - showing input box");
       vscode.window.showInputBox({
         prompt: "Enter a custom hex color (e.g., #ff5733, #3498db, #27ae60)",
         placeHolder: "#ff5733",
@@ -254,6 +261,18 @@ export function changeFilterColor(treeItem: vscode.TreeItem, state: State) {
           applyColorToFilter(customColor, treeItem, state);
         }
       });
+      return;
+    }
+
+    // Handle remove color actions
+    if (selectedItem.label.startsWith("❌ Remove Color")) {
+      const colorToRemove = selectedItem.description;
+      if (colorToRemove) {
+        UserColorMemory.removeColorFromMemory(colorToRemove);
+        vscode.window.showInformationMessage(`🗑️ Removed ${colorToRemove} from recently used colors`);
+        // Reopen the color picker to show updated list
+        changeFilterColor(treeItem, state);
+      }
       return;
     }
 
