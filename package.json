@@ -54,12 +54,12 @@
       {
         "command": "log-analysis-gamma.enableHighlight",
         "title": "Enable Highlight",
-        "icon": "$(paintcan)"
+        "icon": "$(circle-filled)"
       },
       {
         "command": "log-analysis-gamma.disableHighlight",
         "title": "Disable Highlight",
-        "icon": "$(paintcan)"
+        "icon": "$(circle-outline)"
       },
       {
         "command": "log-analysis-gamma.enableVisibility",
@@ -74,12 +74,12 @@
       {
         "command": "log-analysis-gamma.turnOnFocusMode",
         "title": "Turn on Focus Mode",
-        "icon": "$(symbol-keyword)"
+        "icon": "$(target)"
       },
       {
         "command": "log-analysis-gamma.deleteFilter",
         "title": "Delete This Filter",
-        "icon": "$(dialog-close)"
+        "icon": "$(trash)"
       },
       {
         "command": "log-analysis-gamma.editFilter",
@@ -89,7 +89,7 @@
       {
         "command": "log-analysis-gamma.changeFilterColor",
         "title": "Change Filter Color",
-        "icon": "$(symbol-color)"
+        "icon": "$(color-mode)"
       },
       {
         "command": "log-analysis-gamma.addFilter",
@@ -279,7 +279,7 @@
         {
           "id": "filter_gamma_project_setting",
           "title": "Log Analysis Gamma",
-          "icon": "$(folder-library)"
+          "icon": "$(filter-filled)"
         }
       ]
     }
