@@ -193,20 +193,20 @@ export function activate(context: vscode.ExtensionContext) {
     applyNoUnderlineDecoration(vscode.window.activeTextEditor);
   }
 
-  //register filterTreeViewProvider under id 'filters' which gets attached
-  //to the file explorer according to package.json's contributes>views>explorer
+  //register filterTreeViewProvider under id 'filters-gamma' which gets attached
+  //to the Log Analysis Gamma activity bar according to package.json's contributes>views>filter_gamma_project_setting
   const view = vscode.window.createTreeView(
     "filters-gamma",
     { treeDataProvider: state.filterTreeViewProvider, showCollapseAll: true }
   );
   context.subscriptions.push(view);
 
-  //register filterTreeViewProvider under id 'filters.minus' which gets attached
-  //to the file explorer according to package.json's contributes>views>explorer
+  //register exFilterTreeViewProvider under id 'filters-gamma.minus' which gets attached
+  //to the Log Analysis Gamma activity bar according to package.json's contributes>views>filter_gamma_project_setting
   vscode.window.registerTreeDataProvider('filters-gamma.minus', state.exFilterTreeViewProvider);
 
-  //register projectTreeViewProvider under id 'filters.settings' which gets attached
-  //to filter_project_setting in the Activity Bar according to package.json's contributes>views>filter_project_settings
+  //register projectTreeViewProvider under id 'filters-gamma.settings' which gets attached
+  //to the Log Analysis Gamma activity bar according to package.json's contributes>views>filter_gamma_project_setting
   vscode.window.registerTreeDataProvider(
     "filters-gamma.settings",
     state.projectTreeViewProvider);
