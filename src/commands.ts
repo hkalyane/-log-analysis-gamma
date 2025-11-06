@@ -5,6 +5,7 @@ import { readSettings, saveSettings } from "./settings";
 import { DocumentCacheManager } from "./documentCache";
 import { PerformanceUtils } from "./performanceUtils";
 import { EditorManager, EditorSelectionStrategy } from "./editorManager";
+import { ProjectSettingsManager } from "./projectSettingsManager";
 
 function hasHighlightedFilter(state: State): boolean {
   let hasHighlighted: boolean = false;
@@ -210,7 +211,7 @@ export function changeFilterColor(treeItem: vscode.TreeItem, state: State) {
 
   // Add truly random color option
   colorItems.push({
-    label: "$(symbol-color) Truly Random Color",
+    label: "Truly Random Color",
     description: "Generate completely random color",
     detail: "Generate a completely random color with good saturation and lightness",
     iconPath: new vscode.ThemeIcon("symbol-color", new vscode.ThemeColor("charts.foreground"))
@@ -222,7 +223,7 @@ export function changeFilterColor(treeItem: vscode.TreeItem, state: State) {
     // Add recently used colors
     rememberedColors.forEach((color, index) => {
       colorItems.push({
-        label: `$(clock) Recently Used #${index + 1}`,
+        label: `Recently Used #${index + 1}`,
         description: color,
         detail: `Previously used color (${color})`,
         iconPath: new vscode.ThemeIcon("clock", new vscode.ThemeColor("charts.blue"))
@@ -230,7 +231,7 @@ export function changeFilterColor(treeItem: vscode.TreeItem, state: State) {
       
       // Add remove option for each recently used color
       colorItems.push({
-        label: `$(close) Remove Color #${index + 1}`,
+        label: `Remove Color #${index + 1}`,
         description: color,
         detail: `Remove ${color} from recently used colors`,
         iconPath: new vscode.ThemeIcon("close", new vscode.ThemeColor("charts.red"))
@@ -240,7 +241,7 @@ export function changeFilterColor(treeItem: vscode.TreeItem, state: State) {
 
   // Add a custom color option
   colorItems.push({
-    label: "$(edit) Custom Color",
+    label: "Custom Color",
     description: "Enter custom hex color",
     detail: "Define your own color using hex code (e.g., #ff5733)",
     iconPath: new vscode.ThemeIcon("edit", new vscode.ThemeColor("charts.green"))
@@ -250,7 +251,7 @@ export function changeFilterColor(treeItem: vscode.TreeItem, state: State) {
     placeHolder: "Select a color for the filter (scroll to see all options)",
     matchOnDescription: true,
     matchOnDetail: true,
-    title: "$(symbol-color) Filter Color Selection",
+    title: "Filter Color Selection",
     canPickMany: false,
     ignoreFocusOut: false
   }).then((selectedItem) => {
@@ -271,7 +272,7 @@ export function changeFilterColor(treeItem: vscode.TreeItem, state: State) {
       return;
     }
 
-    if (selectedItem.label === "$(symbol-color) Truly Random Color") {
+    if (selectedItem.label === "Truly Random Color") {
       selectedColor = generateTrulyRandomColor();
       UserColorMemory.addColorToMemory(selectedColor);
       applyColorToFilter(selectedColor, treeItem, state);
@@ -281,7 +282,7 @@ export function changeFilterColor(treeItem: vscode.TreeItem, state: State) {
       return;
     }
 
-    if (selectedItem.label === "$(edit) Custom Color") {
+    if (selectedItem.label === "Custom Color") {
       vscode.window.showInputBox({
         prompt: "Enter a custom hex color (e.g., #ff5733, #3498db, #27ae60)",
         placeHolder: "#ff5733",
@@ -299,7 +300,7 @@ export function changeFilterColor(treeItem: vscode.TreeItem, state: State) {
     }
 
     // Handle remove color actions
-    if (selectedItem.label.startsWith("$(close) Remove Color")) {
+    if (selectedItem.label.startsWith("Remove Color")) {
       const colorToRemove = selectedItem.description;
       if (colorToRemove) {
         UserColorMemory.removeColorFromMemory(colorToRemove);
@@ -356,31 +357,31 @@ export function openPerformanceSettings() {
   // Create quick pick interface for performance settings
   const strategyItems: vscode.QuickPickItem[] = [
     {
-      label: "$(rocket) Active Only",
+      label: "Active Only",
       description: "Maximum Performance",
       detail: "Process only the active editor (90% improvement with many open files)",
       iconPath: new vscode.ThemeIcon("rocket", new vscode.ThemeColor("charts.red"))
     },
     {
-      label: "$(eye) Visible Only", 
+      label: "Visible Only", 
       description: "Balanced Performance",
       detail: "Process all visible editors (good for split views, 30-50% improvement)",
       iconPath: new vscode.ThemeIcon("eye", new vscode.ThemeColor("charts.blue"))
     },
     {
-      label: "$(file-text) Relevant Only",
+      label: "Relevant Only",
       description: "Smart Selection", 
       detail: "Auto-detect and process only log files (60-80% improvement)",
       iconPath: new vscode.ThemeIcon("file-text", new vscode.ThemeColor("charts.green"))
     },
     {
-      label: "$(brain) Adaptive",
+      label: "Adaptive",
       description: "Intelligent (Default)",
       detail: "Automatically adjust based on number of open editors (recommended)",
       iconPath: new vscode.ThemeIcon("lightbulb", new vscode.ThemeColor("charts.purple"))
     },
     {
-      label: "$(gear) Open Full Settings",
+      label: "Open Full Settings",
       description: "Advanced Configuration",
       detail: "Open VS Code settings for detailed configuration",
       iconPath: new vscode.ThemeIcon("gear", new vscode.ThemeColor("charts.orange"))
@@ -389,30 +390,30 @@ export function openPerformanceSettings() {
 
   vscode.window.showQuickPick(strategyItems, {
     placeHolder: "Choose performance strategy for filter processing",
-    title: "$(zap) Log Analysis Gamma - Performance Settings"
+    title: "Log Analysis Gamma - Performance Settings"
   }).then((selectedItem) => {
     if (!selectedItem) return;
 
     const config = vscode.workspace.getConfiguration('logAnalysisGamma');
     
     switch (selectedItem.label) {
-      case "$(rocket) Active Only":
+      case "Active Only":
         config.update('editorSelectionStrategy', 'active', vscode.ConfigurationTarget.Global);
         vscode.window.showInformationMessage('$(rocket) Performance: Set to Active Only (maximum speed)');
         break;
-      case "$(eye) Visible Only":
+      case "Visible Only":
         config.update('editorSelectionStrategy', 'visible', vscode.ConfigurationTarget.Global);
         vscode.window.showInformationMessage('$(eye) Performance: Set to Visible Only (balanced)');
         break;
-      case "$(file-text) Relevant Only":
+      case "Relevant Only":
         config.update('editorSelectionStrategy', 'relevant', vscode.ConfigurationTarget.Global);
         vscode.window.showInformationMessage('$(file-text) Performance: Set to Relevant Only (smart selection)');
         break;
-      case "$(brain) Adaptive":
+      case "Adaptive":
         config.update('editorSelectionStrategy', 'adaptive', vscode.ConfigurationTarget.Global);
         vscode.window.showInformationMessage('$(brain) Performance: Set to Adaptive (intelligent, recommended)');
         break;
-      case "$(gear) Open Full Settings":
+      case "Open Full Settings":
         vscode.commands.executeCommand('workbench.action.openSettings', 'logAnalysisGamma');
         break;
     }
@@ -819,4 +820,187 @@ export function addExFilter(state: State) {
 export function deleteExGroup(state: State) {
   state.exFilters.splice(0, state.exFilters.length);
   refreshEditors(state);
+}
+
+// Project Settings Management Commands
+
+export async function loadProjectSettings(context: vscode.ExtensionContext, state: State) {
+  const manager = ProjectSettingsManager.getInstance(context);
+  
+  const options: vscode.OpenDialogOptions = {
+    canSelectMany: false,
+    openLabel: 'Load Project Settings',
+    filters: {
+      'JSON Files': ['json'],
+      'All Files': ['*']
+    }
+  };
+
+  const fileUri = await vscode.window.showOpenDialog(options);
+  if (fileUri && fileUri[0]) {
+    const settings = await manager.loadProjectSettings(fileUri[0].fsPath);
+    if (settings) {
+      await manager.applyProjectSettings(settings, state);
+      // Refresh the UI to reflect filter changes
+      refreshEditors(state);
+    }
+  }
+}
+
+export async function saveProjectSettings(context: vscode.ExtensionContext, state: State) {
+  const manager = ProjectSettingsManager.getInstance(context);
+  
+  if (manager.getCurrentSettingsPath()) {
+    await manager.saveProjectSettings(undefined, state);
+  } else {
+    await createProjectSettings(context, state);
+  }
+}
+
+export async function createProjectSettings(context: vscode.ExtensionContext, state?: State) {
+  const manager = ProjectSettingsManager.getInstance(context);
+  
+  const options: vscode.SaveDialogOptions = {
+    defaultUri: vscode.workspace.workspaceFolders?.[0]?.uri,
+    filters: {
+      'JSON Files': ['json'],
+      'All Files': ['*']
+    },
+    saveLabel: 'Create Project Settings'
+  };
+
+  const fileUri = await vscode.window.showSaveDialog(options);
+  if (fileUri) {
+    await manager.saveProjectSettings(fileUri.fsPath, state);
+  }
+}
+
+export async function refreshProjectSettings(context: vscode.ExtensionContext, state: State) {
+  const manager = ProjectSettingsManager.getInstance(context);
+  
+  if (!manager.getCurrentSettingsPath()) {
+    vscode.window.showWarningMessage('No project settings file to refresh');
+    return;
+  }
+
+  const settings = await manager.loadProjectSettings();
+  if (settings) {
+    await manager.applyProjectSettings(settings, state);
+    refreshEditors(state);
+    vscode.window.showInformationMessage(`$(refresh) Refreshed project settings from: ${manager.getCurrentSettingsPath()}`);
+  }
+}
+
+export async function showProjectSettingsInfo(context: vscode.ExtensionContext) {
+  const manager = ProjectSettingsManager.getInstance(context);
+  const info = manager.getSettingsFileInfo();
+  
+  if (!info.path) {
+    vscode.window.showInformationMessage('$(info) No project settings file configured');
+    return;
+  }
+  
+  const status = info.exists ? '$(check) Active' : '$(error) Missing';
+  const lastModified = info.lastModified ? info.lastModified.toLocaleString() : 'Unknown';
+  
+  const message = `Project Settings:\n${status}\nPath: ${info.path}\nLast Modified: ${lastModified}`;
+  
+  const actions = ['Open File', 'Refresh', 'Load Different File'];
+  const action = await vscode.window.showInformationMessage(message, ...actions);
+  
+  if (action === 'Open File' && info.exists) {
+    const doc = await vscode.workspace.openTextDocument(info.path);
+    await vscode.window.showTextDocument(doc);
+  } else if (action === 'Refresh') {
+    await refreshProjectSettings(context, {} as State); // We'll need to pass proper state
+  } else if (action === 'Load Different File') {
+    await loadProjectSettings(context, {} as State); // We'll need to pass proper state
+  }
+}
+
+// Helper function to update ProjectSettingsManager with current filters
+async function updateProjectSettingsWithCurrentState(manager: ProjectSettingsManager, state: State) {
+  // TODO: We need to integrate this with the ProjectSettingsManager
+  // For now, this is a placeholder that shows the structure we need
+  
+  // The ProjectSettingsManager.saveProjectSettings method needs to be updated
+  // to accept current filter state as a parameter
+}
+
+// Enhanced project settings management with QuickPick interface
+export async function openProjectSettingsManager(context: vscode.ExtensionContext, state: State) {
+  const manager = ProjectSettingsManager.getInstance(context);
+  const quickPick = vscode.window.createQuickPick();
+  
+  quickPick.title = 'Project Settings Manager';
+  quickPick.placeholder = 'Choose an action for project settings management';
+  
+  const currentFile = manager.getCurrentSettingsPath();
+  const fileStatus = manager.getSettingsFileInfo();
+  
+  const items = [
+    {
+      label: "Load Project Settings",
+      description: "Load settings from file",
+      detail: "Open and apply settings from a project file",
+      iconPath: new vscode.ThemeIcon("folder-opened", new vscode.ThemeColor("charts.blue"))
+    },
+    {
+      label: "Save Current Settings",
+      description: "Save to project file", 
+      detail: currentFile ? `Save to: ${currentFile}` : "Create new project settings file",
+      iconPath: new vscode.ThemeIcon("save", new vscode.ThemeColor("charts.green"))
+    },
+    {
+      label: "Create New Settings File",
+      description: "Create new project file",
+      detail: "Create a new project settings file with current configuration",
+      iconPath: new vscode.ThemeIcon("file-add", new vscode.ThemeColor("charts.purple"))
+    }
+  ];
+  
+  if (currentFile) {
+    items.push({
+      label: "Refresh Current Settings",
+      description: fileStatus.exists ? "Reload from file" : "File missing",
+      detail: `Refresh from: ${currentFile}`,
+      iconPath: new vscode.ThemeIcon("refresh", new vscode.ThemeColor("charts.orange"))
+    });
+    
+    items.push({
+      label: "Settings File Info",
+      description: fileStatus.exists ? "Show file details" : "File not found",
+      detail: `Status: ${fileStatus.exists ? 'Active' : 'Missing'}`,
+      iconPath: new vscode.ThemeIcon("info", new vscode.ThemeColor("charts.foreground"))
+    });
+  }
+  
+  quickPick.items = items;
+  
+  quickPick.onDidChangeSelection(async (selectedItems) => {
+    if (selectedItems.length === 0) return;
+    
+    const selectedItem = selectedItems[0];
+    quickPick.hide();
+    
+    switch (selectedItem.label) {
+      case "Load Project Settings":
+        await loadProjectSettings(context, state);
+        break;
+      case "Save Current Settings":
+        await saveProjectSettings(context, state);
+        break;
+      case "Create New Settings File":
+        await createProjectSettings(context);
+        break;
+      case "Refresh Current Settings":
+        await refreshProjectSettings(context, state);
+        break;
+      case "Settings File Info":
+        await showProjectSettingsInfo(context);
+        break;
+    }
+  });
+  
+  quickPick.show();
 }

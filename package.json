@@ -154,6 +154,36 @@
         "title": "Log Analysis: Performance Settings",
         "icon": "$(settings-gear)",
         "category": "Log Analysis Gamma"
+      },
+      {
+        "command": "log-analysis-gamma.createProjectSettings",
+        "title": "Log Analysis: Create Project Settings File",
+        "icon": "$(file-add)",
+        "category": "Log Analysis Gamma"
+      },
+      {
+        "command": "log-analysis-gamma.loadProjectSettings",
+        "title": "Log Analysis: Load Project Settings File",
+        "icon": "$(folder-opened)",
+        "category": "Log Analysis Gamma"
+      },
+      {
+        "command": "log-analysis-gamma.saveProjectSettings",
+        "title": "Log Analysis: Save Current Settings to Project File",
+        "icon": "$(save)",
+        "category": "Log Analysis Gamma"
+      },
+      {
+        "command": "log-analysis-gamma.refreshProjectSettings",
+        "title": "Log Analysis: Refresh Project Settings",
+        "icon": "$(refresh)",
+        "category": "Log Analysis Gamma"
+      },
+      {
+        "command": "log-analysis-gamma.projectSettingsInfo",
+        "title": "Log Analysis: Project Settings Info",
+        "icon": "$(info)",
+        "category": "Log Analysis Gamma"
       }
     ],
     "menus": {
@@ -264,6 +294,21 @@
           "command": "log-analysis-gamma.openPerformanceSettings",
           "when": "view == filters-gamma",
           "group": "navigation@4"
+        },
+        {
+          "command": "log-analysis-gamma.loadProjectSettings",
+          "when": "view == filters-gamma",
+          "group": "navigation@5"
+        },
+        {
+          "command": "log-analysis-gamma.saveProjectSettings",
+          "when": "view == filters-gamma",
+          "group": "navigation@6"
+        },
+        {
+          "command": "log-analysis-gamma.refreshProjectSettings",
+          "when": "view == filters-gamma",
+          "group": "navigation@7"
         }
       ]
     },

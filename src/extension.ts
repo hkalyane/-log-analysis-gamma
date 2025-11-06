@@ -22,7 +22,13 @@ import {
   addExFilter,
   deleteExGroup,
   clearColorMemory,
-  openPerformanceSettings
+  openPerformanceSettings,
+  createProjectSettings,
+  loadProjectSettings,
+  saveProjectSettings,
+  refreshProjectSettings,
+  showProjectSettingsInfo,
+  openProjectSettingsManager
 } from "./commands";
 import { FilterTreeViewProvider } from "./filterTreeViewProvider";
 import { ProjectTreeViewProvider } from "./projectTreeViewProvider";
@@ -500,6 +506,37 @@ export function activate(context: vscode.ExtensionContext) {
     "log-analysis-gamma.openPerformanceSettings",
     () => openPerformanceSettings());
   context.subscriptions.push(disposableOpenPerformanceSettings);
+
+  // Project Settings Management Commands
+  let disposableCreateProjectSettings = vscode.commands.registerCommand(
+    "log-analysis-gamma.createProjectSettings",
+    () => createProjectSettings(context, state));
+  context.subscriptions.push(disposableCreateProjectSettings);
+
+  let disposableLoadProjectSettings = vscode.commands.registerCommand(
+    "log-analysis-gamma.loadProjectSettings", 
+    () => loadProjectSettings(context, state));
+  context.subscriptions.push(disposableLoadProjectSettings);
+
+  let disposableSaveProjectSettings = vscode.commands.registerCommand(
+    "log-analysis-gamma.saveProjectSettings",
+    () => saveProjectSettings(context, state));
+  context.subscriptions.push(disposableSaveProjectSettings);
+
+  let disposableRefreshProjectSettings = vscode.commands.registerCommand(
+    "log-analysis-gamma.refreshProjectSettings",
+    () => refreshProjectSettings(context, state));
+  context.subscriptions.push(disposableRefreshProjectSettings);
+
+  let disposableProjectSettingsInfo = vscode.commands.registerCommand(
+    "log-analysis-gamma.projectSettingsInfo",
+    () => showProjectSettingsInfo(context));
+  context.subscriptions.push(disposableProjectSettingsInfo);
+
+  let disposableOpenProjectSettingsManager = vscode.commands.registerCommand(
+    "log-analysis-gamma.openProjectSettingsManager",
+    () => openProjectSettingsManager(context, state));
+  context.subscriptions.push(disposableOpenProjectSettingsManager);
 }
 
 // this method is called when your extension is deactivated
