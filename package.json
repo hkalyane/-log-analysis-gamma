@@ -1,7 +1,7 @@
 {
   "name": "log-analysis-gamma",
   "displayName": "Log Analysis Gamma",
-  "description": "Advanced log analysis with colorful filters, focus mode, and enhanced features. New in v1.5.0: Revolutionary selective editor processing for 50-90% performance improvement. Smart editor selection strategies (active/visible/relevant/adaptive) with configurable max editors. Complete color management with random generator, memory system, and individual removal. Features major performance optimizations and VS Code 1.85.1 compatibility.",
+  "description": "Advanced log analysis with colorful filters, focus mode, and enhanced features. New in v1.5.0: Revolutionary unified project settings system + performance improvements up to 90%! Combines internal projects with external shareable configurations in single JSON format. Smart editor selection strategies (active/visible/relevant/adaptive) with selective processing. Complete color management with random generator and memory system. Team collaboration ready with import/export functionality. Enhanced UI organization and VS Code 1.85.1+ compatibility.",
   "publisher": "hkalyane",
   "repository": {
     "type": "git",
