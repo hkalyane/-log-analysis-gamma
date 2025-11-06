@@ -4,6 +4,7 @@ import { generateRandomColor, generateSvgUri, setStatusBarMessage, getProjectSel
 import { readSettings, saveSettings } from "./settings";
 import { DocumentCacheManager } from "./documentCache";
 import { PerformanceUtils } from "./performanceUtils";
+import { EditorManager, EditorSelectionStrategy } from "./editorManager";
 
 function hasHighlightedFilter(state: State): boolean {
   let hasHighlighted: boolean = false;
@@ -22,8 +23,38 @@ function hasHighlightedFilter(state: State): boolean {
 
 export function applyHighlight(
   state: State,
-  editors: readonly vscode.TextEditor[]
+  editors?: readonly vscode.TextEditor[]
 ): void {
+  // Get editor selection strategy from configuration
+  const config = vscode.workspace.getConfiguration('logAnalysisGamma');
+  const strategy = config.get<EditorSelectionStrategy>('editorSelectionStrategy', EditorSelectionStrategy.ADAPTIVE);
+  const maxEditors = config.get<number>('maxEditorsToProcess', 3);
+
+  // Select editors based on strategy (if not provided)
+  let targetEditors: vscode.TextEditor[];
+  
+  if (editors) {
+    targetEditors = [...editors];
+  } else {
+    // Use performance measurement
+    targetEditors = EditorManager.measurePerformance(() => {
+      switch (strategy) {
+        case EditorSelectionStrategy.ACTIVE_ONLY:
+          return EditorManager.getActiveEditorOnly();
+        case EditorSelectionStrategy.VISIBLE_ONLY:
+          return EditorManager.getVisibleEditorsOnly();
+        case EditorSelectionStrategy.RELEVANT_ONLY:
+          return EditorManager.getRelevantEditors();
+        case EditorSelectionStrategy.ADAPTIVE:
+          return EditorManager.getAdaptiveEditors(maxEditors);
+        default:
+          return EditorManager.getAdaptiveEditors(maxEditors);
+      }
+    }, `Editor Selection (${strategy})`);
+  }
+
+  console.log(`[Performance] Processing ${targetEditors.length} editors using ${strategy} strategy`);
+
   // Performance optimization: dispose old decorations
   PerformanceUtils.disposeDecorations(state.decorations);
   state.decorations = [];
@@ -37,44 +68,47 @@ export function applyHighlight(
 
   const cacheManager = DocumentCacheManager.getInstance();
 
-  editors.forEach((editor) => {
-    // Performance optimization: get cached document processing
-    const documentCache = cacheManager.getCache(editor.document);
-    const isFocusMode = PerformanceUtils.isFocusModeEditor(editor);
+  // Performance measurement for the entire highlighting process
+  EditorManager.measurePerformance(() => {
+    targetEditors.forEach((editor) => {
+      // Performance optimization: get cached document processing
+      const documentCache = cacheManager.getCache(editor.document);
+      const isFocusMode = PerformanceUtils.isFocusModeEditor(editor);
 
-    // Collect all filter ranges for batching
-    const filterRanges: Array<{ filter: any; ranges: vscode.Range[] }> = [];
+      // Collect all filter ranges for batching
+      const filterRanges: Array<{ filter: any; ranges: vscode.Range[] }> = [];
 
-    // Process each active filter once per editor
-    activeFilters.forEach((filter) => {
-      // Skip if filter should not be highlighted in current context
-      if (!filter.isHighlighted || (isFocusMode && !filter.isShown)) {
-        return;
-      }
+      // Process each active filter once per editor
+      activeFilters.forEach((filter) => {
+        // Skip if filter should not be highlighted in current context
+        if (!filter.isHighlighted || (isFocusMode && !filter.isShown)) {
+          return;
+        }
 
-      // Performance optimization: use cached regex results
-      const ranges = documentCache.getMatchingRanges(filter.regex);
-      filterRanges.push({ filter, ranges });
+        // Performance optimization: use cached regex results
+        const ranges = documentCache.getMatchingRanges(filter.regex);
+        filterRanges.push({ filter, ranges });
 
-      // Update filter count for active editor only
-      if (editor === vscode.window.activeTextEditor) {
-        filter.count = ranges.length;
-      }
+        // Update filter count for active editor only
+        if (editor === vscode.window.activeTextEditor) {
+          filter.count = ranges.length;
+        }
+      });
+
+      // Performance optimization: batch decorations by color
+      const colorBatches = PerformanceUtils.batchDecorationsByColor(filterRanges);
+      
+      // Apply all decorations for this editor in batches
+      const newDecorations = PerformanceUtils.applyBatchedDecorations(
+        editor, 
+        colorBatches, 
+        state.decorations
+      );
+      
+      // Store decorations for later cleanup
+      state.decorations.push(...newDecorations);
     });
-
-    // Performance optimization: batch decorations by color
-    const colorBatches = PerformanceUtils.batchDecorationsByColor(filterRanges);
-    
-    // Apply all decorations for this editor in batches
-    const newDecorations = PerformanceUtils.applyBatchedDecorations(
-      editor, 
-      colorBatches, 
-      state.decorations
-    );
-    
-    // Store decorations for later cleanup
-    state.decorations.push(...newDecorations);
-  });
+  }, `Highlight Processing (${targetEditors.length} editors)`);
 }
 
 //set bool for whether the lines matched the given filter will be kept for focus mode
@@ -402,7 +436,7 @@ export function setHighlight(
       }
     });
   }
-  applyHighlight(state, vscode.window.visibleTextEditors);
+  applyHighlight(state); // Use smart editor selection
   refreshEditorsDebounced(state, treeItem, 50);
 }
 
@@ -431,7 +465,7 @@ export function refreshEditors(state: State, treeItem?: vscode.TreeItem) {
       applyNoUnderlineDecoration(state, editor);
     }
   });
-  applyHighlight(state, vscode.window.visibleTextEditors);
+  applyHighlight(state); // Use smart editor selection
   console.log("refreshEditors");
   state.filterTreeViewProvider.refresh(treeItem);
   state.exFilterTreeViewProvider.refresh(treeItem);

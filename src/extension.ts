@@ -260,7 +260,7 @@ export function activate(context: vscode.ExtensionContext) {
   var disposableOnDidChangeActiveTextEditor =
     vscode.window.onDidChangeActiveTextEditor((event) => {
       //update the filter counts for the current activate editor
-      applyHighlight(state, vscode.window.visibleTextEditors);
+      applyHighlight(state); // Use smart editor selection
       state.filterTreeViewProvider.refresh();
     });
   context.subscriptions.push(disposableOnDidChangeActiveTextEditor);
