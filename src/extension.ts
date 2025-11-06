@@ -21,7 +21,8 @@ import {
   updateExplorerTitle,
   addExFilter,
   deleteExGroup,
-  clearColorMemory
+  clearColorMemory,
+  openPerformanceSettings
 } from "./commands";
 import { FilterTreeViewProvider } from "./filterTreeViewProvider";
 import { ProjectTreeViewProvider } from "./projectTreeViewProvider";
@@ -494,6 +495,11 @@ export function activate(context: vscode.ExtensionContext) {
     "log-analysis-gamma.clearColorMemory",
     () => clearColorMemory());
   context.subscriptions.push(disposableClearColorMemory);
+
+  let disposableOpenPerformanceSettings = vscode.commands.registerCommand(
+    "log-analysis-gamma.openPerformanceSettings",
+    () => openPerformanceSettings());
+  context.subscriptions.push(disposableOpenPerformanceSettings);
 }
 
 // this method is called when your extension is deactivated

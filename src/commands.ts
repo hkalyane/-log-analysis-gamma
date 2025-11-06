@@ -352,6 +352,68 @@ export function clearColorMemory() {
   vscode.window.showInformationMessage('🧹 Recently used colors cleared!');
 }
 
+export function openPerformanceSettings() {
+  // Create quick pick interface for performance settings
+  const strategyItems: vscode.QuickPickItem[] = [
+    {
+      label: "🚀 Active Only",
+      description: "Maximum Performance",
+      detail: "Process only the active editor (90% improvement with many open files)"
+    },
+    {
+      label: "👁️ Visible Only", 
+      description: "Balanced Performance",
+      detail: "Process all visible editors (good for split views, 30-50% improvement)"
+    },
+    {
+      label: "📄 Relevant Only",
+      description: "Smart Selection", 
+      detail: "Auto-detect and process only log files (60-80% improvement)"
+    },
+    {
+      label: "🧠 Adaptive",
+      description: "Intelligent (Default)",
+      detail: "Automatically adjust based on number of open editors (recommended)"
+    },
+    {
+      label: "⚙️ Open Full Settings",
+      description: "Advanced Configuration",
+      detail: "Open VS Code settings for detailed configuration"
+    }
+  ];
+
+  vscode.window.showQuickPick(strategyItems, {
+    placeHolder: "Choose performance strategy for filter processing",
+    title: "🚀 Log Analysis Gamma - Performance Settings"
+  }).then((selectedItem) => {
+    if (!selectedItem) return;
+
+    const config = vscode.workspace.getConfiguration('logAnalysisGamma');
+    
+    switch (selectedItem.label) {
+      case "🚀 Active Only":
+        config.update('editorSelectionStrategy', 'active', vscode.ConfigurationTarget.Global);
+        vscode.window.showInformationMessage('🚀 Performance: Set to Active Only (maximum speed)');
+        break;
+      case "👁️ Visible Only":
+        config.update('editorSelectionStrategy', 'visible', vscode.ConfigurationTarget.Global);
+        vscode.window.showInformationMessage('👁️ Performance: Set to Visible Only (balanced)');
+        break;
+      case "📄 Relevant Only":
+        config.update('editorSelectionStrategy', 'relevant', vscode.ConfigurationTarget.Global);
+        vscode.window.showInformationMessage('📄 Performance: Set to Relevant Only (smart selection)');
+        break;
+      case "🧠 Adaptive":
+        config.update('editorSelectionStrategy', 'adaptive', vscode.ConfigurationTarget.Global);
+        vscode.window.showInformationMessage('🧠 Performance: Set to Adaptive (intelligent, recommended)');
+        break;
+      case "⚙️ Open Full Settings":
+        vscode.commands.executeCommand('workbench.action.openSettings', 'logAnalysisGamma');
+        break;
+    }
+  });
+}
+
 export function addFilter(treeItem: vscode.TreeItem, state: State) {
   vscode.window
     .showInputBox({

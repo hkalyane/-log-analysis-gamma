@@ -148,6 +148,12 @@
         "command": "log-analysis-gamma.clearColorMemory",
         "title": "Clear Recently Used Colors",
         "icon": "$(clear-all)"
+      },
+      {
+        "command": "log-analysis-gamma.openPerformanceSettings",
+        "title": "Log Analysis: Performance Settings",
+        "icon": "$(settings-gear)",
+        "category": "Log Analysis Gamma"
       }
     ],
     "menus": {
@@ -253,6 +259,11 @@
           "command": "log-analysis-gamma.deleteExGroup",
           "when": "view == filters-gamma.minus",
           "group": "navigation@2"
+        },
+        {
+          "command": "log-analysis-gamma.openPerformanceSettings",
+          "when": "view == filters-gamma",
+          "group": "navigation@4"
         }
       ]
     },
