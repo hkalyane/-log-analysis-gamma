@@ -127,22 +127,19 @@
         "icon": "$(gear)"
       },
       {
-        "command": "log-analysis-gamma.refreshSettings",
-        "title": "Refresh",
-        "icon": "$(refresh)"
-      },
-      {
         "command": "log-analysis-gamma.saveProject",
         "title": "Save groups to project",
         "icon": "$(save-as)"
       },
       {
         "command": "log-analysis-gamma.selectProject",
-        "title": "Select project"
+        "title": "Select project",
+        "icon": "$(check)"
       },
       {
         "command": "log-analysis-gamma.openOriginalLocation",
-        "title": "Open Original Location"
+        "title": "Open Original Location",
+        "icon": "$(link-external)"
       },
       {
         "command": "log-analysis-gamma.clearColorMemory",
@@ -151,38 +148,26 @@
       },
       {
         "command": "log-analysis-gamma.openPerformanceSettings",
-        "title": "Log Analysis: Performance Settings",
-        "icon": "$(settings-gear)",
+        "title": "Performance Settings",
+        "icon": "$(zap)",
         "category": "Log Analysis Gamma"
       },
       {
-        "command": "log-analysis-gamma.createProjectSettings",
-        "title": "Log Analysis: Create Project Settings File",
-        "icon": "$(file-add)",
-        "category": "Log Analysis Gamma"
-      },
-      {
-        "command": "log-analysis-gamma.loadProjectSettings",
-        "title": "Log Analysis: Load Project Settings File",
+        "command": "log-analysis-gamma.loadUnifiedSettings",
+        "title": "Load Unified Settings",
         "icon": "$(folder-opened)",
         "category": "Log Analysis Gamma"
       },
       {
-        "command": "log-analysis-gamma.saveProjectSettings",
-        "title": "Log Analysis: Save Current Settings to Project File",
+        "command": "log-analysis-gamma.saveUnifiedSettings",
+        "title": "Save Unified Settings",
         "icon": "$(save)",
         "category": "Log Analysis Gamma"
       },
       {
-        "command": "log-analysis-gamma.refreshProjectSettings",
-        "title": "Log Analysis: Refresh Project Settings",
+        "command": "log-analysis-gamma.refreshUnifiedSettings",
+        "title": "Refresh Unified Settings",
         "icon": "$(refresh)",
-        "category": "Log Analysis Gamma"
-      },
-      {
-        "command": "log-analysis-gamma.projectSettingsInfo",
-        "title": "Log Analysis: Project Settings Info",
-        "icon": "$(info)",
         "category": "Log Analysis Gamma"
       }
     ],
@@ -261,11 +246,6 @@
           "group": "navigation@2"
         },
         {
-          "command": "log-analysis-gamma.saveProject",
-          "when": "view == filters-gamma",
-          "group": "navigation@3"
-        },
-        {
           "command": "log-analysis-gamma.addProject",
           "when": "view == filters-gamma.settings",
           "group": "navigation@1"
@@ -276,9 +256,24 @@
           "group": "navigation@2"
         },
         {
-          "command": "log-analysis-gamma.refreshSettings",
+          "command": "log-analysis-gamma.loadUnifiedSettings",
           "when": "view == filters-gamma.settings",
           "group": "navigation@3"
+        },
+        {
+          "command": "log-analysis-gamma.saveUnifiedSettings",
+          "when": "view == filters-gamma.settings",
+          "group": "navigation@4"
+        },
+        {
+          "command": "log-analysis-gamma.refreshUnifiedSettings",
+          "when": "view == filters-gamma.settings",
+          "group": "navigation@5"
+        },
+        {
+          "command": "log-analysis-gamma.openPerformanceSettings",
+          "when": "view == filters-gamma.settings",
+          "group": "navigation@6"
         },
         {
           "command": "log-analysis-gamma.addExFilter",
@@ -289,26 +284,6 @@
           "command": "log-analysis-gamma.deleteExGroup",
           "when": "view == filters-gamma.minus",
           "group": "navigation@2"
-        },
-        {
-          "command": "log-analysis-gamma.openPerformanceSettings",
-          "when": "view == filters-gamma",
-          "group": "navigation@4"
-        },
-        {
-          "command": "log-analysis-gamma.loadProjectSettings",
-          "when": "view == filters-gamma",
-          "group": "navigation@5"
-        },
-        {
-          "command": "log-analysis-gamma.saveProjectSettings",
-          "when": "view == filters-gamma",
-          "group": "navigation@6"
-        },
-        {
-          "command": "log-analysis-gamma.refreshProjectSettings",
-          "when": "view == filters-gamma",
-          "group": "navigation@7"
         }
       ]
     },
@@ -322,16 +297,16 @@
     "views": {
       "filter_gamma_project_setting": [
         {
+          "id": "filters-gamma.settings",
+          "name": "Projects"
+        },
+        {
           "id": "filters-gamma",
           "name": "Filters+"
         },
         {
           "id": "filters-gamma.minus",
-          "name": "Filters-"
-        },
-        {
-          "id": "filters-gamma.settings",
-          "name": "Projects"
+          "name": "EXCLUDE_FILTER"
         }
       ]
     },

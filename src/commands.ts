@@ -850,10 +850,33 @@ export async function loadProjectSettings(context: vscode.ExtensionContext, stat
 export async function saveProjectSettings(context: vscode.ExtensionContext, state: State) {
   const manager = ProjectSettingsManager.getInstance(context);
   
+  // If we have a current project settings file, save to it
   if (manager.getCurrentSettingsPath()) {
     await manager.saveProjectSettings(undefined, state);
   } else {
-    await createProjectSettings(context, state);
+    // If no external project settings file, offer choice between internal and external save
+    const choice = await vscode.window.showQuickPick([
+      {
+        label: "Save to External Project File",
+        description: "Create shareable JSON settings file",
+        detail: "Save filters and settings to external file for team sharing"
+      },
+      {
+        label: "Save to Internal Project",
+        description: "Save to VS Code extension storage",  
+        detail: "Save filter groups to currently selected internal project"
+      }
+    ], {
+      placeHolder: "Choose how to save your project settings",
+      title: "Project Settings Save Options"
+    });
+
+    if (choice?.label === "Save to External Project File") {
+      await createProjectSettings(context, state);
+    } else if (choice?.label === "Save to Internal Project") {
+      // Call the original saveProject functionality
+      saveProject(state);
+    }
   }
 }
 
@@ -889,6 +912,11 @@ export async function refreshProjectSettings(context: vscode.ExtensionContext, s
     refreshEditors(state);
     vscode.window.showInformationMessage(`$(refresh) Refreshed project settings from: ${manager.getCurrentSettingsPath()}`);
   }
+}
+
+export async function importInternalProjects(context: vscode.ExtensionContext, state: State) {
+  const manager = ProjectSettingsManager.getInstance(context);
+  await manager.importInternalProjects(state);
 }
 
 export async function showProjectSettingsInfo(context: vscode.ExtensionContext) {

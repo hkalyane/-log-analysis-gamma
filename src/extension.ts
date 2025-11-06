@@ -28,7 +28,8 @@ import {
   saveProjectSettings,
   refreshProjectSettings,
   showProjectSettingsInfo,
-  openProjectSettingsManager
+  openProjectSettingsManager,
+  importInternalProjects
 } from "./commands";
 import { FilterTreeViewProvider } from "./filterTreeViewProvider";
 import { ProjectTreeViewProvider } from "./projectTreeViewProvider";
@@ -507,36 +508,21 @@ export function activate(context: vscode.ExtensionContext) {
     () => openPerformanceSettings());
   context.subscriptions.push(disposableOpenPerformanceSettings);
 
-  // Project Settings Management Commands
-  let disposableCreateProjectSettings = vscode.commands.registerCommand(
-    "log-analysis-gamma.createProjectSettings",
-    () => createProjectSettings(context, state));
-  context.subscriptions.push(disposableCreateProjectSettings);
-
-  let disposableLoadProjectSettings = vscode.commands.registerCommand(
-    "log-analysis-gamma.loadProjectSettings", 
+  // Unified Project Settings Management Commands
+  let disposableLoadUnifiedSettings = vscode.commands.registerCommand(
+    "log-analysis-gamma.loadUnifiedSettings", 
     () => loadProjectSettings(context, state));
-  context.subscriptions.push(disposableLoadProjectSettings);
+  context.subscriptions.push(disposableLoadUnifiedSettings);
 
-  let disposableSaveProjectSettings = vscode.commands.registerCommand(
-    "log-analysis-gamma.saveProjectSettings",
+  let disposableSaveUnifiedSettings = vscode.commands.registerCommand(
+    "log-analysis-gamma.saveUnifiedSettings",
     () => saveProjectSettings(context, state));
-  context.subscriptions.push(disposableSaveProjectSettings);
+  context.subscriptions.push(disposableSaveUnifiedSettings);
 
-  let disposableRefreshProjectSettings = vscode.commands.registerCommand(
-    "log-analysis-gamma.refreshProjectSettings",
+  let disposableRefreshUnifiedSettings = vscode.commands.registerCommand(
+    "log-analysis-gamma.refreshUnifiedSettings",
     () => refreshProjectSettings(context, state));
-  context.subscriptions.push(disposableRefreshProjectSettings);
-
-  let disposableProjectSettingsInfo = vscode.commands.registerCommand(
-    "log-analysis-gamma.projectSettingsInfo",
-    () => showProjectSettingsInfo(context));
-  context.subscriptions.push(disposableProjectSettingsInfo);
-
-  let disposableOpenProjectSettingsManager = vscode.commands.registerCommand(
-    "log-analysis-gamma.openProjectSettingsManager",
-    () => openProjectSettingsManager(context, state));
-  context.subscriptions.push(disposableOpenProjectSettingsManager);
+  context.subscriptions.push(disposableRefreshUnifiedSettings);
 }
 
 // this method is called when your extension is deactivated

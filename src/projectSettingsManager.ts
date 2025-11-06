@@ -8,6 +8,25 @@ export interface ProjectSettings {
     autoDetectLogFiles: boolean;
     showRandomColorNotifications: boolean;
     maxRememberedColors: number;
+    // Internal projects system (from the old vscode_log_analysis.json)
+    projects: Array<{
+        id?: string;
+        name: string;
+        selected?: boolean;
+        groups: Array<{
+            id?: string;
+            name: string;
+            filters: Array<{
+                id: string;
+                name: string;
+                pattern: string;
+                color: string;
+                enabled: boolean;
+                isExclusionFilter?: boolean;
+            }>;
+        }>;
+    }>;
+    // Direct filters (new external system)
     filters: Array<{
         id: string;
         name: string;
@@ -122,6 +141,14 @@ export class ProjectSettingsManager {
                 color: filter.color,
                 enabled: filter.enabled
             })) || [];
+
+            // Convert internal projects if provided
+            const projects = currentState?.projects?.map((project: any) => ({
+                id: project.id,
+                name: project.name,
+                selected: project.selected,
+                groups: project.groups || []
+            })) || [];
             
             const projectSettings: ProjectSettings = {
                 editorSelectionStrategy: config.get('editorSelectionStrategy', 'adaptive'),
@@ -129,6 +156,7 @@ export class ProjectSettingsManager {
                 autoDetectLogFiles: config.get('autoDetectLogFiles', true),
                 showRandomColorNotifications: config.get('showRandomColorNotifications', true),
                 maxRememberedColors: config.get('maxRememberedColors', 10),
+                projects: projects,
                 filters: filters,
                 exclusionFilters: exclusionFilters
             };
@@ -182,9 +210,14 @@ export class ProjectSettingsManager {
                 if (settings.exclusionFilters) {
                     currentState.exFilters.push(...settings.exclusionFilters);
                 }
+
+                // Apply projects if provided
+                if (settings.projects && currentState.projects) {
+                    currentState.projects = settings.projects;
+                }
             }
             
-            vscode.window.showInformationMessage(`$(check) Applied project settings (${settings.filters?.length || 0} filters, ${settings.exclusionFilters?.length || 0} exclusions)`);
+            vscode.window.showInformationMessage(`$(check) Applied unified project settings (${settings.projects?.length || 0} projects, ${settings.filters?.length || 0} filters, ${settings.exclusionFilters?.length || 0} exclusions)`);
             
         } catch (error) {
             vscode.window.showErrorMessage(`Failed to apply project settings: ${error}`);
@@ -245,6 +278,88 @@ export class ProjectSettingsManager {
             if (settings) {
                 await this.applyProjectSettings(settings);
             }
+        }
+    }
+
+    /**
+     * Import existing internal projects from VS Code storage
+     */
+    async importInternalProjects(currentState?: any): Promise<void> {
+        if (!currentState?.projects) {
+            vscode.window.showWarningMessage('No internal projects found to import');
+            return;
+        }
+
+        const internalProjects = currentState.projects;
+        if (!internalProjects || internalProjects.length === 0) {
+            vscode.window.showInformationMessage('No internal projects to import');
+            return;
+        }
+
+        const choice = await vscode.window.showQuickPick([
+            {
+                label: "Create New Unified Settings File",
+                description: "Export internal projects to new external file",
+                detail: "Create a new shareable file with your internal projects"
+            },
+            {
+                label: "Add to Existing Settings File", 
+                description: "Merge with current external project settings",
+                detail: "Add internal projects to currently loaded external file"
+            }
+        ], {
+            placeHolder: "How would you like to export your internal projects?",
+            title: "Import Internal Projects"
+        });
+
+        if (choice?.label === "Create New Unified Settings File") {
+            await this.createUnifiedProjectSettings(currentState);
+        } else if (choice?.label === "Add to Existing Settings File") {
+            if (this.currentSettingsPath) {
+                await this.mergeWithExistingSettings(currentState);
+            } else {
+                vscode.window.showWarningMessage('No external settings file loaded. Please load a settings file first.');
+            }
+        }
+    }
+
+    /**
+     * Create a new unified settings file with internal projects
+     */
+    private async createUnifiedProjectSettings(currentState: any): Promise<void> {
+        const options: vscode.SaveDialogOptions = {
+            defaultUri: vscode.workspace.workspaceFolders?.[0]?.uri,
+            filters: {
+                'JSON Files': ['json'],
+                'All Files': ['*']
+            },
+            saveLabel: 'Create Unified Project Settings'
+        };
+
+        const fileUri = await vscode.window.showSaveDialog(options);
+        if (fileUri) {
+            await this.saveProjectSettings(fileUri.fsPath, currentState);
+            vscode.window.showInformationMessage(`$(check) Created unified project settings with ${currentState.projects?.length || 0} internal projects`);
+        }
+    }
+
+    /**
+     * Merge internal projects with existing external settings
+     */
+    private async mergeWithExistingSettings(currentState: any): Promise<void> {
+        const existingSettings = await this.loadProjectSettings();
+        if (existingSettings) {
+            // Merge projects
+            const mergedProjects = [...(existingSettings.projects || []), ...(currentState.projects || [])];
+            
+            // Update current state with merged data
+            const mergedState = {
+                ...currentState,
+                projects: mergedProjects
+            };
+
+            await this.saveProjectSettings(undefined, mergedState);
+            vscode.window.showInformationMessage(`$(check) Merged ${currentState.projects?.length || 0} internal projects with existing settings`);
         }
     }
 
