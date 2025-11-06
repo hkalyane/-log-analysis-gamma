@@ -210,10 +210,10 @@ export function changeFilterColor(treeItem: vscode.TreeItem, state: State) {
 
   // Add truly random color option
   colorItems.push({
-    label: "🌈 Truly Random Color",
+    label: "$(symbol-color) Truly Random Color",
     description: "Generate completely random color",
     detail: "Generate a completely random color with good saturation and lightness",
-    iconPath: new vscode.ThemeIcon("color-mode")
+    iconPath: new vscode.ThemeIcon("symbol-color", new vscode.ThemeColor("charts.foreground"))
   });
 
   // Add recently used colors if available
@@ -222,35 +222,35 @@ export function changeFilterColor(treeItem: vscode.TreeItem, state: State) {
     // Add recently used colors
     rememberedColors.forEach((color, index) => {
       colorItems.push({
-        label: `🕒 Recently Used #${index + 1}`,
+        label: `$(clock) Recently Used #${index + 1}`,
         description: color,
         detail: `Previously used color (${color})`,
-        iconPath: new vscode.ThemeIcon("history")
+        iconPath: new vscode.ThemeIcon("clock", new vscode.ThemeColor("charts.blue"))
       });
       
       // Add remove option for each recently used color
       colorItems.push({
-        label: `❌ Remove Color #${index + 1}`,
+        label: `$(close) Remove Color #${index + 1}`,
         description: color,
         detail: `Remove ${color} from recently used colors`,
-        iconPath: new vscode.ThemeIcon("close")
+        iconPath: new vscode.ThemeIcon("close", new vscode.ThemeColor("charts.red"))
       });
     });
   }
 
   // Add a custom color option
   colorItems.push({
-    label: "Custom Color",
+    label: "$(edit) Custom Color",
     description: "Enter custom hex color",
     detail: "Define your own color using hex code (e.g., #ff5733)",
-    iconPath: new vscode.ThemeIcon("edit")
+    iconPath: new vscode.ThemeIcon("edit", new vscode.ThemeColor("charts.green"))
   });
 
   vscode.window.showQuickPick(colorItems, {
     placeHolder: "Select a color for the filter (scroll to see all options)",
     matchOnDescription: true,
     matchOnDetail: true,
-    title: "🎨 Filter Color Selection",
+    title: "$(symbol-color) Filter Color Selection",
     canPickMany: false,
     ignoreFocusOut: false
   }).then((selectedItem) => {
@@ -271,7 +271,7 @@ export function changeFilterColor(treeItem: vscode.TreeItem, state: State) {
       return;
     }
 
-    if (selectedItem.label === "🌈 Truly Random Color") {
+    if (selectedItem.label === "$(symbol-color) Truly Random Color") {
       selectedColor = generateTrulyRandomColor();
       UserColorMemory.addColorToMemory(selectedColor);
       applyColorToFilter(selectedColor, treeItem, state);
@@ -281,7 +281,7 @@ export function changeFilterColor(treeItem: vscode.TreeItem, state: State) {
       return;
     }
 
-    if (selectedItem.label === "Custom Color") {
+    if (selectedItem.label === "$(edit) Custom Color") {
       vscode.window.showInputBox({
         prompt: "Enter a custom hex color (e.g., #ff5733, #3498db, #27ae60)",
         placeHolder: "#ff5733",
@@ -299,11 +299,11 @@ export function changeFilterColor(treeItem: vscode.TreeItem, state: State) {
     }
 
     // Handle remove color actions
-    if (selectedItem.label.startsWith("❌ Remove Color")) {
+    if (selectedItem.label.startsWith("$(close) Remove Color")) {
       const colorToRemove = selectedItem.description;
       if (colorToRemove) {
         UserColorMemory.removeColorFromMemory(colorToRemove);
-        vscode.window.showInformationMessage(`🗑️ Removed ${colorToRemove} from recently used colors`);
+        vscode.window.showInformationMessage(`$(trash) Removed ${colorToRemove} from recently used colors`);
         // Reopen the color picker to show updated list
         changeFilterColor(treeItem, state);
       }
@@ -349,65 +349,70 @@ function applyColorToFilter(newColor: string, treeItem: vscode.TreeItem, state: 
 
 export function clearColorMemory() {
   UserColorMemory.clearColorMemory();
-  vscode.window.showInformationMessage('🧹 Recently used colors cleared!');
+  vscode.window.showInformationMessage('$(clear-all) Recently used colors cleared!');
 }
 
 export function openPerformanceSettings() {
   // Create quick pick interface for performance settings
   const strategyItems: vscode.QuickPickItem[] = [
     {
-      label: "🚀 Active Only",
+      label: "$(rocket) Active Only",
       description: "Maximum Performance",
-      detail: "Process only the active editor (90% improvement with many open files)"
+      detail: "Process only the active editor (90% improvement with many open files)",
+      iconPath: new vscode.ThemeIcon("rocket", new vscode.ThemeColor("charts.red"))
     },
     {
-      label: "👁️ Visible Only", 
+      label: "$(eye) Visible Only", 
       description: "Balanced Performance",
-      detail: "Process all visible editors (good for split views, 30-50% improvement)"
+      detail: "Process all visible editors (good for split views, 30-50% improvement)",
+      iconPath: new vscode.ThemeIcon("eye", new vscode.ThemeColor("charts.blue"))
     },
     {
-      label: "📄 Relevant Only",
+      label: "$(file-text) Relevant Only",
       description: "Smart Selection", 
-      detail: "Auto-detect and process only log files (60-80% improvement)"
+      detail: "Auto-detect and process only log files (60-80% improvement)",
+      iconPath: new vscode.ThemeIcon("file-text", new vscode.ThemeColor("charts.green"))
     },
     {
-      label: "🧠 Adaptive",
+      label: "$(brain) Adaptive",
       description: "Intelligent (Default)",
-      detail: "Automatically adjust based on number of open editors (recommended)"
+      detail: "Automatically adjust based on number of open editors (recommended)",
+      iconPath: new vscode.ThemeIcon("lightbulb", new vscode.ThemeColor("charts.purple"))
     },
     {
-      label: "⚙️ Open Full Settings",
+      label: "$(gear) Open Full Settings",
       description: "Advanced Configuration",
-      detail: "Open VS Code settings for detailed configuration"
+      detail: "Open VS Code settings for detailed configuration",
+      iconPath: new vscode.ThemeIcon("gear", new vscode.ThemeColor("charts.orange"))
     }
   ];
 
   vscode.window.showQuickPick(strategyItems, {
     placeHolder: "Choose performance strategy for filter processing",
-    title: "🚀 Log Analysis Gamma - Performance Settings"
+    title: "$(zap) Log Analysis Gamma - Performance Settings"
   }).then((selectedItem) => {
     if (!selectedItem) return;
 
     const config = vscode.workspace.getConfiguration('logAnalysisGamma');
     
     switch (selectedItem.label) {
-      case "🚀 Active Only":
+      case "$(rocket) Active Only":
         config.update('editorSelectionStrategy', 'active', vscode.ConfigurationTarget.Global);
-        vscode.window.showInformationMessage('🚀 Performance: Set to Active Only (maximum speed)');
+        vscode.window.showInformationMessage('$(rocket) Performance: Set to Active Only (maximum speed)');
         break;
-      case "👁️ Visible Only":
+      case "$(eye) Visible Only":
         config.update('editorSelectionStrategy', 'visible', vscode.ConfigurationTarget.Global);
-        vscode.window.showInformationMessage('👁️ Performance: Set to Visible Only (balanced)');
+        vscode.window.showInformationMessage('$(eye) Performance: Set to Visible Only (balanced)');
         break;
-      case "📄 Relevant Only":
+      case "$(file-text) Relevant Only":
         config.update('editorSelectionStrategy', 'relevant', vscode.ConfigurationTarget.Global);
-        vscode.window.showInformationMessage('📄 Performance: Set to Relevant Only (smart selection)');
+        vscode.window.showInformationMessage('$(file-text) Performance: Set to Relevant Only (smart selection)');
         break;
-      case "🧠 Adaptive":
+      case "$(brain) Adaptive":
         config.update('editorSelectionStrategy', 'adaptive', vscode.ConfigurationTarget.Global);
-        vscode.window.showInformationMessage('🧠 Performance: Set to Adaptive (intelligent, recommended)');
+        vscode.window.showInformationMessage('$(brain) Performance: Set to Adaptive (intelligent, recommended)');
         break;
-      case "⚙️ Open Full Settings":
+      case "$(gear) Open Full Settings":
         vscode.commands.executeCommand('workbench.action.openSettings', 'logAnalysisGamma');
         break;
     }

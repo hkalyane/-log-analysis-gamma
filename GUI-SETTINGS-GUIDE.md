@@ -10,24 +10,24 @@ Log Analysis Gamma provides multiple intuitive ways to access and configure perf
 3. Choose from the quick pick interface:
 
 ```
-🚀 Active Only          Maximum Performance
+$(rocket) Active Only          Maximum Performance
    Process only the active editor (90% improvement)
 
-👁️ Visible Only         Balanced Performance  
+$(eye) Visible Only         Balanced Performance  
    Process all visible editors (30-50% improvement)
 
-📄 Relevant Only        Smart Selection
+$(file-text) Relevant Only        Smart Selection
    Auto-detect and process only log files (60-80% improvement)
 
-🧠 Adaptive             Intelligent (Default)
+$(brain) Adaptive             Intelligent (Default)
    Automatically adjust based on number of open editors
 
-⚙️ Open Full Settings   Advanced Configuration
+$(gear) Open Full Settings   Advanced Configuration
    Open VS Code settings for detailed configuration
 ```
 
 ### **Sidebar Access:**
-- Click the ⚙️ gear icon in the Log Analysis Gamma sidebar
+- Click the $(gear) gear icon in the Log Analysis Gamma sidebar
 - Quick access from the main filter view
 
 ## 🎛️ **Method 2: VS Code Settings UI**
@@ -107,17 +107,17 @@ When you change settings through the GUI, you'll see confirmation messages:
 ## 🎨 **Visual Indicators**
 
 ### **Strategy Icons:**
-- 🚀 Active Only - Maximum speed
-- 👁️ Visible Only - Balanced performance
-- 📄 Relevant Only - Smart selection
-- 🧠 Adaptive - Intelligent (recommended)
+- $(rocket) Active Only - Maximum speed
+- $(eye) Visible Only - Balanced  
+- $(file-text) Relevant Only - Smart selection
+- $(brain) Adaptive - Intelligent (default)
 
 ### **Performance Impact:**
-| Strategy | Editors with 10 open | Performance Gain |
-|----------|---------------------|------------------|
-| 🚀 Active Only | 1 editor | 90% faster |
-| 👁️ Visible Only | 2-4 editors | 50% faster |
-| 📄 Relevant Only | 3-5 editors | 70% faster |
-| 🧠 Adaptive | 3 editors | 60% faster |
+| Strategy | Editors Processed | Performance Gain |
+|----------|------------------|------------------|
+| $(rocket) Active Only | 1 editor | 90% faster |
+| $(eye) Visible Only | 2-4 editors | 50% faster |
+| $(file-text) Relevant Only | 3-5 editors | 70% faster |
+| $(brain) Adaptive | Auto-adjust | 60% faster |
 
 All settings are applied immediately - no need to restart VS Code!
