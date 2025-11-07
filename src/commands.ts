@@ -357,37 +357,37 @@ export function openPerformanceSettings() {
   // Create quick pick interface for performance settings with detailed information
   const strategyItems: vscode.QuickPickItem[] = [
     {
-      label: "🚀 Active Only",
+      label: "Active Only",
       description: "Maximum Performance (90% improvement)",
       detail: "Processes ONLY the active editor. Best for: Large projects (10+ files), single-file focus, maximum speed. Trade-off: No highlights in background files until clicked.",
       iconPath: new vscode.ThemeIcon("rocket", new vscode.ThemeColor("charts.red"))
     },
     {
-      label: "👁️ Visible Only", 
+      label: "Visible Only", 
       description: "Balanced Performance (30-50% improvement)",
       detail: "Processes ALL visible editors in split-view. Best for: Split workflows (2-4 panes), multi-file comparison. Trade-off: Hidden tabs not processed.",
       iconPath: new vscode.ThemeIcon("eye", new vscode.ThemeColor("charts.blue"))
     },
     {
-      label: "🎯 Relevant Only",
+      label: "Relevant Only",
       description: "Smart Selection (70% improvement)", 
       detail: "Auto-detects log files (.log, .txt, .out, .err, .trace). Best for: Mixed projects (code + logs), automatic smart detection. Configurable file types.",
       iconPath: new vscode.ThemeIcon("file-text", new vscode.ThemeColor("charts.green"))
     },
     {
-      label: "🧠 Adaptive",
+      label: "Adaptive",
       description: "Intelligent (60% improvement, Default)",
       detail: "Auto-adjusts: Few files (≤3) = all processed, Many files (>3) = smart selection up to limit. Best for: Variable workflows, 'set and forget'.",
       iconPath: new vscode.ThemeIcon("lightbulb", new vscode.ThemeColor("charts.purple"))
     },
     {
-      label: "🔧 Configure File Types",
+      label: "Configure File Types",
       description: "Customize Relevant File Extensions",
       detail: "Add/remove file types for 'Relevant Only' strategy. Choose from 13+ common log extensions or add custom ones via settings.",
       iconPath: new vscode.ThemeIcon("gear", new vscode.ThemeColor("charts.orange"))
     },
     {
-      label: "⚙️ Open Full Settings",
+      label: "Open Full Settings",
       description: "Advanced Configuration",
       detail: "Access complete VS Code settings: max editors limit (1-10), auto-detect options, color memory, notifications, and more.",
       iconPath: new vscode.ThemeIcon("settings", new vscode.ThemeColor("charts.gray"))
@@ -406,28 +406,28 @@ export function openPerformanceSettings() {
     const config = vscode.workspace.getConfiguration('logAnalysisGamma');
     
     switch (selectedItem.label) {
-      case "🚀 Active Only":
+      case "Active Only":
         config.update('editorSelectionStrategy', 'active', vscode.ConfigurationTarget.Global);
-        vscode.window.showInformationMessage('🚀 Performance: Active Only - Maximum speed! Only active editor processed (90% improvement)');
+        vscode.window.showInformationMessage('$(rocket) Performance: Active Only - Maximum speed! Only active editor processed (90% improvement)');
         break;
-      case "👁️ Visible Only":
+      case "Visible Only":
         config.update('editorSelectionStrategy', 'visible', vscode.ConfigurationTarget.Global);
-        vscode.window.showInformationMessage('👁️ Performance: Visible Only - Balanced for split-view workflows (30-50% improvement)');
+        vscode.window.showInformationMessage('$(eye) Performance: Visible Only - Balanced for split-view workflows (30-50% improvement)');
         break;
-      case "🎯 Relevant Only":
+      case "Relevant Only":
         config.update('editorSelectionStrategy', 'relevant', vscode.ConfigurationTarget.Global);
         const currentExtensions = config.get<string[]>('relevantFileExtensions', ['.log', '.txt', '.out', '.err', '.trace']);
-        vscode.window.showInformationMessage(`🎯 Performance: Relevant Only - Smart log detection (70% improvement). Processing: ${currentExtensions.join(', ')}`);
+        vscode.window.showInformationMessage(`$(file-text) Performance: Relevant Only - Smart log detection (70% improvement). Processing: ${currentExtensions.join(', ')}`);
         break;
-      case "🧠 Adaptive":
+      case "Adaptive":
         config.update('editorSelectionStrategy', 'adaptive', vscode.ConfigurationTarget.Global);
         const maxEditors = config.get<number>('maxEditorsToProcess', 3);
-        vscode.window.showInformationMessage(`🧠 Performance: Adaptive - Intelligent auto-adjustment (60% improvement). Max editors: ${maxEditors}`);
+        vscode.window.showInformationMessage(`$(lightbulb) Performance: Adaptive - Intelligent auto-adjustment (60% improvement). Max editors: ${maxEditors}`);
         break;
-      case "🔧 Configure File Types":
+      case "Configure File Types":
         configureRelevantFileTypes();
         break;
-      case "⚙️ Open Full Settings":
+      case "Open Full Settings":
         vscode.commands.executeCommand('workbench.action.openSettings', 'logAnalysisGamma');
         break;
     }
@@ -445,28 +445,28 @@ export function configureRelevantFileTypes() {
   
   // Common file extensions for logs with descriptions
   const extensionGroups = [
-    { category: '🔥 Primary Log Files', extensions: [
+    { category: 'Primary Log Files', extensions: [
       { ext: '.log', desc: 'Standard application logs' },
       { ext: '.txt', desc: 'Text-based log files' },
       { ext: '.out', desc: 'Output/stdout files' },
       { ext: '.err', desc: 'Error/stderr files' },
       { ext: '.trace', desc: 'Stack trace files' }
     ]},
-    { category: '📊 Log Levels', extensions: [
+    { category: 'Log Levels', extensions: [
       { ext: '.debug', desc: 'Debug level logs' },
       { ext: '.info', desc: 'Info level logs' },
       { ext: '.warn', desc: 'Warning level logs' },
       { ext: '.error', desc: 'Error level logs' },
       { ext: '.fatal', desc: 'Fatal error logs' }
     ]},
-    { category: '🔒 Specialized Logs', extensions: [
+    { category: 'Specialized Logs', extensions: [
       { ext: '.access', desc: 'Web server access logs' },
       { ext: '.audit', desc: 'Security audit logs' },
       { ext: '.security', desc: 'Security event logs' },
       { ext: '.perf', desc: 'Performance metrics' },
       { ext: '.metrics', desc: 'Application metrics' }
     ]},
-    { category: '💻 System Logs', extensions: [
+    { category: 'System Logs', extensions: [
       { ext: '.console', desc: 'Console output' },
       { ext: '.output', desc: 'System output files' },
       { ext: '.dump', desc: 'Memory/thread dumps' },
@@ -489,7 +489,7 @@ export function configureRelevantFileTypes() {
       allItems.push({
         label: ext,
         description: desc,
-        detail: isEnabled ? '✅ Currently enabled - will be processed' : '⚪ Click to enable for processing',
+        detail: isEnabled ? '$(check) Currently enabled - will be processed' : '$(circle-outline) Click to enable for processing',
         picked: isEnabled
       });
     });
@@ -503,13 +503,13 @@ export function configureRelevantFileTypes() {
   quickPick.onDidAccept(() => {
     const selectedExtensions = quickPick.selectedItems
       .map(item => item.label)
-      .filter(label => label && !label.includes('🔥') && !label.includes('📊') && !label.includes('🔒') && !label.includes('💻')); // Filter out category headers
+      .filter(label => label && !['Primary Log Files', 'Log Levels', 'Specialized Logs', 'System Logs'].includes(label)); // Filter out category headers
     
     config.update('relevantFileExtensions', selectedExtensions, vscode.ConfigurationTarget.Global);
     
     const message = selectedExtensions.length > 0 
-      ? `🎯 Updated relevant file types (${selectedExtensions.length}): ${selectedExtensions.join(', ')}`
-      : '⚠️ No file types selected - "Relevant Only" strategy will process no files';
+      ? `$(file-text) Updated relevant file types (${selectedExtensions.length}): ${selectedExtensions.join(', ')}`
+      : '$(warning) No file types selected - "Relevant Only" strategy will process no files';
       
     vscode.window.showInformationMessage(message);
     quickPick.hide();
