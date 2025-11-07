@@ -1,14 +1,14 @@
 {
   "name": "log-analysis-gamma",
   "displayName": "Log Analysis Gamma",
-  "description": "Advanced log analysis with colorful filters, focus mode, and enhanced features. New in v1.5.0: Revolutionary unified project settings system + performance improvements up to 90%! Combines internal projects with external shareable configurations in single JSON format. Smart editor selection strategies (active/visible/relevant/adaptive) with selective processing. Complete color management with random generator and memory system. Team collaboration ready with import/export functionality. Enhanced UI organization and VS Code 1.85.1+ compatibility.",
+  "description": "Advanced log analysis with colorful filters, focus mode, and enhanced features. New in v1.5.1: Configurable file types for performance optimization + enhanced user guidance! Revolutionary unified project settings system with up to 90% performance improvements. Smart editor selection strategies with customizable file extensions. Complete color management and team collaboration ready. Professional interface with VS Code native icons.",
   "publisher": "hkalyane",
   "repository": {
     "type": "git",
     "url": "https://github.com/hkalyane/log-analysis-gamma.git"
   },
   "icon": "image/icon.png",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "engines": {
     "vscode": "^1.49.0"
   },

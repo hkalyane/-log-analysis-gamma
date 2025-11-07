@@ -2,6 +2,40 @@
 
 All notable changes to the "log-analysis-gamma" extension will be documented in this file.
 
+## 1.5.1 - **LATEST RELEASE** 🎯
+
+### 🔧 Configurable File Types for Performance Optimization
+- **NEW**: Customizable file extensions for "Relevant Only" strategy via VS Code settings
+- **NEW**: Visual file type configuration interface with 18+ predefined log extensions
+- **NEW**: Organized categories: Primary Log Files, Log Levels, Specialized Logs, System Logs
+- **NEW**: Real-time updates - file type changes apply immediately without restart
+- **SETTING**: `logAnalysisGamma.relevantFileExtensions` array setting with validation
+
+### 📖 Enhanced User Experience & Interface
+- **IMPROVED**: Comprehensive performance strategy guidance with detailed use cases
+- **IMPROVED**: Professional interface using only VS Code native icons (removed emojis)
+- **IMPROVED**: Enhanced tooltips and descriptions for all performance strategies
+- **IMPROVED**: Better visual indicators using VS Code's icon system (check, circle-outline, etc.)
+- **IMPROVED**: Organized file type selection with category separators
+
+### 🎛️ Performance Settings Enhancements
+- **ENHANCED**: Performance settings interface with detailed strategy explanations
+- **ENHANCED**: "Configure File Types" option directly in performance settings
+- **ENHANCED**: Better confirmation messages with specific extension lists
+- **ENHANCED**: Improved QuickPick interface with search capabilities
+
+### 📸 Documentation & Visual Guides
+- **NEW**: Comprehensive Features Showcase document with visual examples
+- **NEW**: ASCII art representations of all major interfaces
+- **NEW**: Performance comparison charts and workflow examples
+- **NEW**: Team collaboration workflow documentation with JSON examples
+
+### 🔧 Technical Improvements
+- **FIXED**: File extension matching is now case-insensitive
+- **ENHANCED**: Better error handling for empty file type selections
+- **IMPROVED**: More robust filtering logic for category headers
+- **OPTIMIZED**: Cleaner code structure for performance settings
+
 ## 1.5.0 - **MAJOR RELEASE** 🎯
 
 ### 🚀 Unified Project Settings System

@@ -10,6 +10,23 @@ Highlight your logs with colorful filters, and manipulate what to display for be
 This extension is a fork of the [Log Analysis](https://github.com/SoySauceFor3/log-analysis) project, created to introduce and test new features in advance or to implement upcoming requirements. The goal of this project is to eventually contribute these enhancements back to the original Log Analysis project for long-term integration.
 We encourage you to freely share any issues or suggestions for improvement you encounter while using this extension. Your feedback is valuable and helps us enhance the project.
 
+## 🚀 What's New in Gamma v1.5.1 - **LATEST RELEASE**
+
+### 🔧 **Configurable File Types for Performance Optimization**
+- **Customizable file extensions** for "Relevant Only" strategy - now you control which files get processed!
+- **Visual configuration interface** with 18+ predefined log file types organized in categories
+- **Real-time updates** - changes apply immediately without restart
+- **Enhanced user guidance** - detailed descriptions help you choose the optimal performance strategy
+
+### 📖 **Enhanced User Experience with Professional Interface**
+- **Comprehensive strategy guidance** - know exactly when to use each performance option
+- **VS Code native icons** throughout (no more emojis) for consistent, professional appearance
+- **Detailed tooltips and descriptions** for informed decision-making
+- **Organized file type categories** - Primary, Log Levels, Specialized, and System logs
+
+### 📸 **[Visual Features Guide](FEATURES-SHOWCASE.md)** 
+See comprehensive screenshots and examples of all features including performance settings, file type configuration, and team collaboration workflows.
+
 ## 🚀 What's New in Gamma v1.5.0 - **MAJOR RELEASE**
 
 ### 🎯 **Unified Project Settings System** 
