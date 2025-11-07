@@ -38,11 +38,13 @@ export class EditorManager {
      * Strategy 3: Smart editor selection based on file type (intelligent)
      */
     static getRelevantEditors(): vscode.TextEditor[] {
-        const logFileExtensions = ['.log', '.txt', '.out', '.err', '.trace'];
+        // Get configurable file extensions from VS Code settings
+        const config = vscode.workspace.getConfiguration('logAnalysisGamma');
+        const logFileExtensions = config.get<string[]>('relevantFileExtensions', ['.log', '.txt', '.out', '.err', '.trace']);
         
         return vscode.window.visibleTextEditors.filter(editor => {
             const fileName = editor.document.fileName.toLowerCase();
-            return logFileExtensions.some(ext => fileName.endsWith(ext)) ||
+            return logFileExtensions.some(ext => fileName.endsWith(ext.toLowerCase())) ||
                    editor.document.languageId === 'log' ||
                    editor.document.uri.scheme === 'output';
         });

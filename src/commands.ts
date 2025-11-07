@@ -381,10 +381,16 @@ export function openPerformanceSettings() {
       iconPath: new vscode.ThemeIcon("lightbulb", new vscode.ThemeColor("charts.purple"))
     },
     {
+      label: "Configure File Types",
+      description: "Customize Relevant File Extensions",
+      detail: "Add or remove file types for 'Relevant Only' strategy",
+      iconPath: new vscode.ThemeIcon("gear", new vscode.ThemeColor("charts.orange"))
+    },
+    {
       label: "Open Full Settings",
       description: "Advanced Configuration",
       detail: "Open VS Code settings for detailed configuration",
-      iconPath: new vscode.ThemeIcon("gear", new vscode.ThemeColor("charts.orange"))
+      iconPath: new vscode.ThemeIcon("settings", new vscode.ThemeColor("charts.gray"))
     }
   ];
 
@@ -411,13 +417,57 @@ export function openPerformanceSettings() {
         break;
       case "Adaptive":
         config.update('editorSelectionStrategy', 'adaptive', vscode.ConfigurationTarget.Global);
-        vscode.window.showInformationMessage('$(brain) Performance: Set to Adaptive (intelligent, recommended)');
+        vscode.window.showInformationMessage('$(lightbulb) Performance: Set to Adaptive (intelligent, recommended)');
+        break;
+      case "Configure File Types":
+        configureRelevantFileTypes();
         break;
       case "Open Full Settings":
         vscode.commands.executeCommand('workbench.action.openSettings', 'logAnalysisGamma');
         break;
     }
   });
+}
+
+export function configureRelevantFileTypes() {
+  const config = vscode.workspace.getConfiguration('logAnalysisGamma');
+  const currentExtensions = config.get<string[]>('relevantFileExtensions', ['.log', '.txt', '.out', '.err', '.trace']);
+  
+  const quickPick = vscode.window.createQuickPick();
+  quickPick.title = 'Configure Relevant File Types';
+  quickPick.placeholder = 'Select file extensions for "Relevant Only" strategy';
+  quickPick.canSelectMany = true;
+  
+  // Common file extensions for logs
+  const commonExtensions = [
+    '.log', '.txt', '.out', '.err', '.trace', 
+    '.debug', '.info', '.warn', '.error', '.fatal',
+    '.access', '.audit', '.security', '.perf', '.metrics',
+    '.console', '.output', '.dump', '.crash'
+  ];
+  
+  quickPick.items = commonExtensions.map(ext => ({
+    label: ext,
+    description: currentExtensions.includes(ext) ? '✓ Currently enabled' : 'Click to enable',
+    picked: currentExtensions.includes(ext)
+  }));
+  
+  quickPick.selectedItems = quickPick.items.filter(item => 
+    currentExtensions.includes(item.label)
+  );
+  
+  quickPick.onDidAccept(() => {
+    const selectedExtensions = quickPick.selectedItems.map(item => item.label);
+    config.update('relevantFileExtensions', selectedExtensions, vscode.ConfigurationTarget.Global);
+    
+    vscode.window.showInformationMessage(
+      `$(check) Updated relevant file types: ${selectedExtensions.join(', ')}`
+    );
+    quickPick.hide();
+  });
+  
+  quickPick.onDidHide(() => quickPick.dispose());
+  quickPick.show();
 }
 
 export function addFilter(treeItem: vscode.TreeItem, state: State) {

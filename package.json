@@ -371,7 +371,17 @@
         "logAnalysisGamma.autoDetectLogFiles": {
           "type": "boolean",
           "default": true,
-          "description": "Automatically detect and prioritize log files (.log, .txt, .out, .err, .trace)",
+          "description": "Automatically detect and prioritize log files",
+          "scope": "application"
+        },
+        "logAnalysisGamma.relevantFileExtensions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^\\.[a-zA-Z0-9]+$"
+          },
+          "default": [".log", ".txt", ".out", ".err", ".trace"],
+          "description": "File extensions to consider as 'relevant' for the relevant editor selection strategy",
           "scope": "application"
         }
       }
