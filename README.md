@@ -1,11 +1,11 @@
-# 🚀 Log Analysis Gamma
+# 🚀 Log Analysis Advanced
 
 [![Version](https://img.shields.io/vscode-marketplace/v/hkalyane.log-analysis-gamma.svg?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=hkalyane.log-analysis-gamma)
 [![Download](https://img.shields.io/visual-studio-marketplace/d/hkalyane.log-analysis-gamma)](https://marketplace.visualstudio.com/items?itemName=hkalyane.log-analysis-gamma)
 [![Installs](https://img.shields.io/visual-studio-marketplace/i/hkalyane.log-analysis-gamma)](https://marketplace.visualstudio.com/items?itemName=hkalyane.log-analysis-gamma)
 [![Average Rating](https://img.shields.io/vscode-marketplace/r/hkalyane.log-analysis-gamma.svg?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=hkalyane.log-analysis-gamma)
 
-**🎯 Advanced log analysis with smart filtering, focus mode, and team collaboration!**
+**🎯 Professional log analysis with intelligent filtering, focus mode, and enterprise team collaboration!**
 
 Transform your log analysis workflow with intelligent filters, customizable performance optimization, and seamless team sharing. Perfect for debugging, monitoring, and analyzing large log files with up to **90% performance improvement**.
 
@@ -15,7 +15,7 @@ Transform your log analysis workflow with intelligent filters, customizable perf
 
 ### 📁 **Main Extension Interface**
 ```
-┌─ Log Analysis Gamma (Activity Bar) ─────────────────────┐
+┌─ Log Analysis Advanced (Activity Bar) ─────────────────────┐
 │                                                         │
 │ 📂 Projects                                             │
 │ ├─ 📄 Production Logs ✓ (Selected)                     │
@@ -231,19 +231,45 @@ After:  [████████] Minimal Memory (Active Only)
 
 ---
 
-## 🚀 **What's New in v1.5.1 - LATEST RELEASE**
+## 🚀 **What's New in v1.5.3 - LATEST RELEASE**
 
-### 🔧 **Configurable File Types for Performance Optimization**
+### 🎯 **Enhanced Professional Branding**
+- **✅ Rebranded to "Log Analysis Advanced"** - Professional enterprise-ready name
+- **✅ Enhanced marketplace description** - Emphasizes advanced capabilities and enterprise features
+- **✅ Continued version progression** - Seamless update for existing users
+- **✅ Maintained marketplace presence** - All existing ratings, downloads, and user base preserved
+
+### 🔧 **All v1.5.x Features Included**
+- **✅ Configurable file types** for "Relevant Only" strategy with 90% performance boost
+- **✅ Professional VS Code interface** with native icons throughout
+- **✅ Unified project settings** for seamless team collaboration
+- **✅ 4 smart processing strategies** (Active/Visible/Relevant/Adaptive)
+- **✅ Complete visual documentation** with ASCII art interface representations
+
+---
+
+## 🚀 **Previous Updates - v1.5.1 & v1.5.2**
+
+## 🚀 **Previous Updates - v1.5.1 & v1.5.2**
+
+### 🔧 **Configurable File Types for Performance Optimization (v1.5.1)**
 - **✅ Customizable file extensions** for "Relevant Only" strategy 
 - **✅ Visual configuration interface** with 20+ predefined log file types
 - **✅ Real-time updates** - changes apply immediately without restart
 - **✅ Enhanced user guidance** with detailed strategy descriptions
 
-### 📖 **Professional Interface Improvements**
+### 📖 **Professional Interface Improvements (v1.5.1)**
 - **✅ VS Code native icons** throughout (removed emojis for professional look)
 - **✅ Comprehensive strategy guidance** - know exactly when to use each option
 - **✅ Detailed tooltips** for informed decision-making
 - **✅ Organized file type categories** - Primary, Log Levels, Specialized, System
+
+### 📸 **Complete Visual Documentation (v1.5.2)**
+- **✅ ASCII art interface representations** - No external image dependencies
+- **✅ Performance charts and metrics** embedded directly in README
+- **✅ Team collaboration workflow demonstrations** with JSON examples
+- **✅ Focus mode before/after comparisons** showing noise reduction
+- **✅ Marketplace-optimized presentation** for immediate feature discovery
 
 ### 📊 **Performance Metrics You Can See**
 ```
@@ -534,7 +560,7 @@ This extension is a fork of the original [Log Analysis](https://github.com/SoySa
 
 ---
 
-**🎉 Ready to transform your log analysis workflow? Install Log Analysis Gamma and experience the difference!**
+**🎉 Ready to transform your log analysis workflow? Install Log Analysis Advanced and experience the difference!**
 
 ## 🚀 What's New in Gamma v1.5.1 - **LATEST RELEASE**
 

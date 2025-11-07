@@ -1,14 +1,14 @@
 {
   "name": "log-analysis-gamma",
-  "displayName": "Log Analysis Gamma",
-  "description": "🚀 Advanced log analysis extension with smart filtering, focus mode, and team collaboration. NEW v1.5.1: Configurable file types + 90% performance boost! Features: unified project settings, customizable file extensions, professional VS Code interface, color management, regex filters, and seamless team sharing. Perfect for debugging, monitoring, and log analysis workflows.",
+  "displayName": "Log Analysis Advanced",
+  "description": "🚀 Advanced log analysis extension with smart filtering, focus mode, and team collaboration. NEW v1.5.3: Enhanced professional branding + all v1.5.x features! Features: unified project settings, configurable file types with 90% performance boost, customizable file extensions, professional VS Code interface, color management, regex filters, and seamless team sharing. Perfect for debugging, monitoring, and enterprise log analysis workflows.",
   "publisher": "hkalyane",
   "repository": {
     "type": "git",
     "url": "https://github.com/hkalyane/log-analysis-gamma.git"
   },
   "icon": "image/icon.png",
-  "version": "1.5.2",
+  "version": "1.5.3",
   "engines": {
     "vscode": "^1.49.0"
   },
@@ -150,25 +150,25 @@
         "command": "log-analysis-gamma.openPerformanceSettings",
         "title": "Performance Settings",
         "icon": "$(zap)",
-        "category": "Log Analysis Gamma"
+        "category": "Log Analysis Advanced"
       },
       {
         "command": "log-analysis-gamma.loadUnifiedSettings",
         "title": "Load Unified Settings",
         "icon": "$(folder-opened)",
-        "category": "Log Analysis Gamma"
+        "category": "Log Analysis Advanced"
       },
       {
         "command": "log-analysis-gamma.saveUnifiedSettings",
         "title": "Save Unified Settings",
         "icon": "$(save)",
-        "category": "Log Analysis Gamma"
+        "category": "Log Analysis Advanced"
       },
       {
         "command": "log-analysis-gamma.refreshUnifiedSettings",
         "title": "Refresh Unified Settings",
         "icon": "$(refresh)",
-        "category": "Log Analysis Gamma"
+        "category": "Log Analysis Advanced"
       }
     ],
     "menus": {
@@ -314,13 +314,13 @@
       "activitybar": [
         {
           "id": "filter_gamma_project_setting",
-          "title": "Log Analysis Gamma",
+          "title": "Log Analysis Advanced",
           "icon": "$(folder-library)"
         }
       ]
     },
     "configuration": {
-      "title": "Log Analysis Gamma",
+              "title": "Log Analysis Advanced",
       "properties": {
         "logAnalysisGamma.userColors": {
           "type": "array",
