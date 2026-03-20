@@ -1,173 +1,390 @@
 {
-  "name": "log-analysis",
-  "displayName": "Log Analysis",
-  "description": "Add highlights and filters to help log analysis",
-  "publisher": "XinyaYang0506",
+  "name": "log-analysis-gamma",
+  "displayName": "Smart Log Highlighter",
+  "description": "🚀 Smart Log Highlighter - Regex-based log file filtering, focus mode, exclusion filters, and unified project settings. Features: customizable file type detection, color-coded highlights, group-based filter management, team-shareable configurations, and an adaptive editor processing strategy for optimal performance.",
+  "publisher": "hkalyane",
   "repository": {
     "type": "git",
-    "url": "https://github.com/SoySauceFor3/log-analysis.git"
+    "url": "https://github.com/hkalyane/-log-analysis-gamma.git"
   },
   "icon": "image/icon.png",
-  "version": "1.1.2",
+  "version": "1.5.4",
   "engines": {
     "vscode": "^1.49.0"
   },
   "categories": [
-    "Other"
+    "Other",
+    "Debuggers",
+    "Visualization"
+  ],
+  "keywords": [
+    "log",
+    "analysis",
+    "filter",
+    "highlight",
+    "focus",
+    "regex",
+    "debugging",
+    "log viewer",
+    "color picker",
+    "gamma"
   ],
   "activationEvents": [
-    "onStartupFinished"
+    "onStartupFinished",
+    "onLanguage:focus-gamma"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "log-analysis.addGroup",
+        "command": "log-analysis-gamma.addGroup",
         "title": "Add Group",
         "icon": "$(file-directory-create)"
       },
       {
-        "command": "log-analysis.editGroup",
+        "command": "log-analysis-gamma.editGroup",
         "title": "Edit a new name for This Group",
         "icon": "$(edit)"
       },
       {
-        "command": "log-analysis.deleteGroup",
+        "command": "log-analysis-gamma.deleteGroup",
         "title": "Delete This Group",
         "icon": "$(dialog-close)"
       },
       {
-        "command": "log-analysis.enableHighlight",
+        "command": "log-analysis-gamma.enableHighlight",
         "title": "Enable Highlight",
         "icon": "$(paintcan)"
       },
       {
-        "command": "log-analysis.disableHighlight",
+        "command": "log-analysis-gamma.disableHighlight",
         "title": "Disable Highlight",
         "icon": "$(paintcan)"
       },
       {
-        "command": "log-analysis.enableVisibility",
+        "command": "log-analysis-gamma.enableVisibility",
         "title": "Enable Visbility",
         "icon": "$(eye)"
       },
       {
-        "command": "log-analysis.disableVisibility",
+        "command": "log-analysis-gamma.disableVisibility",
         "title": "Disable Visbility",
         "icon": "$(eye-closed)"
       },
       {
-        "command": "log-analysis.turnOnFocusMode",
+        "command": "log-analysis-gamma.turnOnFocusMode",
         "title": "Turn on Focus Mode",
         "icon": "$(symbol-keyword)"
       },
       {
-        "command": "log-analysis.deleteFilter",
+        "command": "log-analysis-gamma.deleteFilter",
         "title": "Delete This Filter",
         "icon": "$(dialog-close)"
       },
       {
-        "command": "log-analysis.editFilter",
+        "command": "log-analysis-gamma.editFilter",
         "title": "Edit Regex for This Filter",
         "icon": "$(edit)"
       },
       {
-        "command": "log-analysis.addFilter",
+        "command": "log-analysis-gamma.changeFilterColor",
+        "title": "Change Filter Color",
+        "icon": "$(symbol-color)"
+      },
+      {
+        "command": "log-analysis-gamma.addFilter",
         "title": "Add a Filter",
         "icon": "$(plus)"
       },
       {
-        "command": "log-analysis.exportFilters",
-        "title": "Export Filters"
+        "command": "log-analysis-gamma.addExFilter",
+        "title": "Add a Exclusion Filter",
+        "icon": "$(plus)"
       },
       {
-        "command": "log-analysis.importFilters",
-        "title": "Import Filters"
+        "command": "log-analysis-gamma.deleteExGroup",
+        "title": "Delete This Exclusion Group",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "log-analysis-gamma.deleteProject",
+        "title": "Delete This Project",
+        "icon": "$(dialog-close)"
+      },
+      {
+        "command": "log-analysis-gamma.editProject",
+        "title": "Edit a new name for This Project",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "log-analysis-gamma.addProject",
+        "title": "Add Project",
+        "icon": "$(repo-create)"
+      },
+      {
+        "command": "log-analysis-gamma.openSettings",
+        "title": "Open Settings",
+        "icon": "$(gear)"
+      },
+      {
+        "command": "log-analysis-gamma.saveProject",
+        "title": "Save groups to project",
+        "icon": "$(save-as)"
+      },
+      {
+        "command": "log-analysis-gamma.selectProject",
+        "title": "Select project",
+        "icon": "$(check)"
+      },
+      {
+        "command": "log-analysis-gamma.openOriginalLocation",
+        "title": "Open Original Location",
+        "icon": "$(link-external)"
+      },
+      {
+        "command": "log-analysis-gamma.clearColorMemory",
+        "title": "Clear Recently Used Colors",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "log-analysis-gamma.openPerformanceSettings",
+        "title": "Performance Settings",
+        "icon": "$(zap)",
+        "category": "Smart Log Highlighter"
+      },
+      {
+        "command": "log-analysis-gamma.loadUnifiedSettings",
+        "title": "Load Unified Settings",
+        "icon": "$(folder-opened)",
+        "category": "Smart Log Highlighter"
+      },
+      {
+        "command": "log-analysis-gamma.saveUnifiedSettings",
+        "title": "Save Unified Settings",
+        "icon": "$(save)",
+        "category": "Smart Log Highlighter"
+      },
+      {
+        "command": "log-analysis-gamma.refreshUnifiedSettings",
+        "title": "Refresh Unified Settings",
+        "icon": "$(refresh)",
+        "category": "Smart Log Highlighter"
       }
     ],
     "menus": {
       "view/item/context": [
         {
-          "command": "log-analysis.addFilter",
-          "when": "view == filters && viewItem =~ /^g-/",
+          "command": "log-analysis-gamma.addFilter",
+          "when": "view == filters-gamma && viewItem =~ /^g-/",
           "group": "inline@1"
         },
         {
-          "command": "log-analysis.editGroup",
-          "when": "view == filters && viewItem =~ /^g-/",
+          "command": "log-analysis-gamma.editGroup",
+          "when": "view == filters-gamma && viewItem =~ /^g-/",
           "group": "inline@2"
         },
         {
-          "command": "log-analysis.editFilter",
-          "when": "view == filters && viewItem =~ /^f-/",
+          "command": "log-analysis-gamma.editFilter",
+          "when": "(view == filters-gamma || view == filters-gamma.minus) && viewItem =~ /^f-/",
           "group": "inline@2"
         },
         {
-          "command": "log-analysis.disableHighlight",
-          "when": "view == filters && viewItem =~ /-lit/",
+          "command": "log-analysis-gamma.changeFilterColor",
+          "when": "view == filters-gamma && viewItem =~ /^f-/",
           "group": "inline@3"
         },
         {
-          "command": "log-analysis.enableHighlight",
-          "when": "view == filters && viewItem =~ /-unlit/",
+          "command": "log-analysis-gamma.editProject",
+          "when": "view == filters-gamma.settings",
           "group": "inline@3"
         },
         {
-          "command": "log-analysis.disableVisibility",
-          "when": "view == filters && viewItem =~ /-visible/",
+          "command": "log-analysis-gamma.disableHighlight",
+          "when": "view == filters-gamma && viewItem =~ /-lit/",
           "group": "inline@4"
         },
         {
-          "command": "log-analysis.enableVisibility",
-          "when": "view == filters && viewItem =~ /-invisible/",
-          "group": "inline@4"
-        },
-        {
-          "command": "log-analysis.deleteGroup",
-          "when": "view == filters && viewItem =~ /^g-/",
+          "command": "log-analysis-gamma.enableHighlight",
+          "when": "view == filters-gamma && viewItem =~ /-unlit/",
           "group": "inline@5"
         },
         {
-          "command": "log-analysis.deleteFilter",
-          "when": "view == filters && viewItem =~ /^f-/",
-          "group": "inline@5"
+          "command": "log-analysis-gamma.disableVisibility",
+          "when": "(view == filters-gamma || view == filters-gamma.minus) && viewItem =~ /-visible/",
+          "group": "inline@6"
+        },
+        {
+          "command": "log-analysis-gamma.enableVisibility",
+          "when": "(view == filters-gamma || view == filters-gamma.minus) && viewItem =~ /-invisible/",
+          "group": "inline@6"
+        },
+        {
+          "command": "log-analysis-gamma.deleteGroup",
+          "when": "view == filters-gamma && viewItem =~ /^g-/",
+          "group": "inline@7"
+        },
+        {
+          "command": "log-analysis-gamma.deleteFilter",
+          "when": "(view == filters-gamma || view == filters-gamma.minus) && viewItem =~ /^f-/",
+          "group": "inline@7"
+        },
+        {
+          "command": "log-analysis-gamma.deleteProject",
+          "when": "view == filters-gamma.settings",
+          "group": "inline@7"
         }
       ],
       "view/title": [
         {
-          "command": "log-analysis.addGroup",
-          "when": "view == filters",
+          "command": "log-analysis-gamma.addGroup",
+          "when": "view == filters-gamma",
           "group": "navigation@1"
         },
         {
-          "command": "log-analysis.turnOnFocusMode",
-          "when": "view == filters",
+          "command": "log-analysis-gamma.turnOnFocusMode",
+          "when": "view == filters-gamma",
           "group": "navigation@2"
         },
         {
-          "command": "log-analysis.importFilters",
-          "when": "view == filters"
+          "command": "log-analysis-gamma.addProject",
+          "when": "view == filters-gamma.settings",
+          "group": "navigation@1"
         },
         {
-          "command": "log-analysis.exportFilters",
-          "when": "view == filters"
+          "command": "log-analysis-gamma.openSettings",
+          "when": "view == filters-gamma.settings",
+          "group": "navigation@2"
+        },
+        {
+          "command": "log-analysis-gamma.loadUnifiedSettings",
+          "when": "view == filters-gamma.settings",
+          "group": "navigation@3"
+        },
+        {
+          "command": "log-analysis-gamma.saveUnifiedSettings",
+          "when": "view == filters-gamma.settings",
+          "group": "navigation@4"
+        },
+        {
+          "command": "log-analysis-gamma.refreshUnifiedSettings",
+          "when": "view == filters-gamma.settings",
+          "group": "navigation@5"
+        },
+        {
+          "command": "log-analysis-gamma.openPerformanceSettings",
+          "when": "view == filters-gamma.settings",
+          "group": "navigation@6"
+        },
+        {
+          "command": "log-analysis-gamma.addExFilter",
+          "when": "view == filters-gamma.minus",
+          "group": "navigation@1"
+        },
+        {
+          "command": "log-analysis-gamma.deleteExGroup",
+          "when": "view == filters-gamma.minus",
+          "group": "navigation@2"
         }
       ]
     },
     "keybindings": [
       {
-        "command": "log-analysis.turnOnFocusMode",
+        "command": "log-analysis-gamma.turnOnFocusMode",
         "key": "ctrl+h",
         "mac": "cmd+h"
       }
     ],
     "views": {
-      "explorer": [
+      "filter_gamma_project_setting": [
         {
-          "id": "filters",
-          "name": "Filters"
+          "id": "filters-gamma.settings",
+          "name": "Projects"
+        },
+        {
+          "id": "filters-gamma",
+          "name": "Filters+"
+        },
+        {
+          "id": "filters-gamma.minus",
+          "name": "EXCLUDE_FILTER"
         }
       ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "filter_gamma_project_setting",
+          "title": "Smart Log Highlighter",
+          "icon": "$(folder-library)"
+        }
+      ]
+    },
+    "configuration": {
+              "title": "Smart Log Highlighter",
+      "properties": {
+        "logAnalysisGamma.userColors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+          },
+          "default": [],
+          "maxItems": 10,
+          "description": "Recently used custom colors for filters (automatically managed)",
+          "scope": "application"
+        },
+        "logAnalysisGamma.maxRememberedColors": {
+          "type": "number",
+          "default": 10,
+          "minimum": 5,
+          "maximum": 20,
+          "description": "Maximum number of custom colors to remember",
+          "scope": "application"
+        },
+        "logAnalysisGamma.showRandomColorNotifications": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show notifications when random colors are applied",
+          "scope": "application"
+        },
+        "logAnalysisGamma.editorSelectionStrategy": {
+          "type": "string",
+          "enum": ["active", "visible", "relevant", "adaptive"],
+          "default": "adaptive",
+          "description": "Strategy for selecting which editors to apply filters to",
+          "enumDescriptions": [
+            "Apply filters only to the active editor (best performance)",
+            "Apply filters to all visible editors (balanced)",
+            "Apply filters only to log files and relevant editors (smart)",
+            "Adaptive selection based on number of open editors (intelligent)"
+          ],
+          "scope": "application"
+        },
+        "logAnalysisGamma.maxEditorsToProcess": {
+          "type": "number",
+          "default": 3,
+          "minimum": 1,
+          "maximum": 10,
+          "description": "Maximum number of editors to process simultaneously (for adaptive strategy)",
+          "scope": "application"
+        },
+        "logAnalysisGamma.autoDetectLogFiles": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically detect and prioritize log files",
+          "scope": "application"
+        },
+        "logAnalysisGamma.relevantFileExtensions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^\\.[a-zA-Z0-9]+$"
+          },
+          "default": [".log", ".txt", ".out", ".err", ".trace"],
+          "description": "File extensions to consider as 'relevant' for the relevant editor selection strategy",
+          "scope": "application"
+        }
+      }
     }
   },
   "scripts": {
@@ -179,15 +396,15 @@
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
-    "@types/vscode": "^1.49.0",
     "@types/glob": "^7.1.3",
     "@types/mocha": "^8.0.0",
     "@types/node": "^14.0.27",
-    "eslint": "^7.6.0",
+    "@types/vscode": "^1.49.0",
     "@typescript-eslint/eslint-plugin": "^3.8.0",
     "@typescript-eslint/parser": "^3.8.0",
+    "eslint": "^7.6.0",
     "glob": "^7.1.6",
-    "mocha": "^8.1.3",
+    "mocha": "^10.7.3",
     "typescript": "^4.0.2",
     "vscode-test": "^1.4.0"
   }
