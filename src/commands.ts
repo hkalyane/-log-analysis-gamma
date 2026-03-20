@@ -396,7 +396,7 @@ export function openPerformanceSettings() {
 
   vscode.window.showQuickPick(strategyItems, {
     placeHolder: "Choose performance strategy - hover over options for detailed guidance",
-    title: "Log Analysis Gamma - Performance Settings (Select based on your workflow)",
+    title: "Smart Log Highlighter - Performance Settings (Select based on your workflow)",
     matchOnDescription: true,
     matchOnDetail: true,
     ignoreFocusOut: false

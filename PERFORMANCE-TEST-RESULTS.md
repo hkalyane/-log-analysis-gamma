@@ -1,7 +1,7 @@
 # Performance Measurement Results
 
 ## Test Environment
-- Extension Version: Log Analysis Gamma v1.4.1
+- Extension Version: Smart Log Highlighter v1.4.1
 - Test Date: November 5, 2025
 - Test Files: performance-test-log.txt (70 lines), large-performance-test.log (500 lines)
 

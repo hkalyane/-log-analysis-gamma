@@ -1,14 +1,14 @@
 {
   "name": "log-analysis-gamma",
-  "displayName": "Log Analysis Advanced",
-  "description": "🚀 Advanced log analysis extension with smart filtering, focus mode, and team collaboration. NEW v1.5.3: Enhanced professional branding + all v1.5.x features! Features: unified project settings, configurable file types with 90% performance boost, customizable file extensions, professional VS Code interface, color management, regex filters, and seamless team sharing. Perfect for debugging, monitoring, and enterprise log analysis workflows.",
+  "displayName": "Smart Log Highlighter",
+  "description": "🚀 Smart Log Highlighter - Regex-based log file filtering, focus mode, exclusion filters, and unified project settings. Features: customizable file type detection, color-coded highlights, group-based filter management, team-shareable configurations, and an adaptive editor processing strategy for optimal performance.",
   "publisher": "hkalyane",
   "repository": {
     "type": "git",
-    "url": "https://github.com/hkalyane/log-analysis-gamma.git"
+    "url": "https://github.com/hkalyane/-log-analysis-gamma.git"
   },
   "icon": "image/icon.png",
-  "version": "1.5.3",
+  "version": "1.5.4",
   "engines": {
     "vscode": "^1.49.0"
   },
@@ -150,25 +150,25 @@
         "command": "log-analysis-gamma.openPerformanceSettings",
         "title": "Performance Settings",
         "icon": "$(zap)",
-        "category": "Log Analysis Advanced"
+        "category": "Smart Log Highlighter"
       },
       {
         "command": "log-analysis-gamma.loadUnifiedSettings",
         "title": "Load Unified Settings",
         "icon": "$(folder-opened)",
-        "category": "Log Analysis Advanced"
+        "category": "Smart Log Highlighter"
       },
       {
         "command": "log-analysis-gamma.saveUnifiedSettings",
         "title": "Save Unified Settings",
         "icon": "$(save)",
-        "category": "Log Analysis Advanced"
+        "category": "Smart Log Highlighter"
       },
       {
         "command": "log-analysis-gamma.refreshUnifiedSettings",
         "title": "Refresh Unified Settings",
         "icon": "$(refresh)",
-        "category": "Log Analysis Advanced"
+        "category": "Smart Log Highlighter"
       }
     ],
     "menus": {
@@ -314,13 +314,13 @@
       "activitybar": [
         {
           "id": "filter_gamma_project_setting",
-          "title": "Log Analysis Advanced",
+          "title": "Smart Log Highlighter",
           "icon": "$(folder-library)"
         }
       ]
     },
     "configuration": {
-              "title": "Log Analysis Advanced",
+              "title": "Smart Log Highlighter",
       "properties": {
         "logAnalysisGamma.userColors": {
           "type": "array",

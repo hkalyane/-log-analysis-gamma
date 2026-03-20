@@ -1,10 +1,10 @@
-# Contributing to Log Analysis Gamma
+# Contributing to Smart Log Highlighter
 
 We always welcome your contributions! This project aims to enhance log analysis capabilities with innovative features while maintaining high performance and usability. Please refer to the guidelines below before contributing to this repository.
 
 ## 🎯 Project Vision
 
-Log Analysis Gamma is focused on:
+Smart Log Highlighter is focused on:
 - **Performance excellence** - Features that improve speed and efficiency
 - **Team collaboration** - Tools that work well in team environments  
 - **User experience** - Intuitive interfaces and workflows
@@ -155,4 +155,4 @@ By contributing, you agree that your contributions will be licensed under the sa
 
 ---
 
-Thank you for contributing to Log Analysis Gamma! Your contributions help make log analysis better for everyone. 🚀
+Thank you for contributing to Smart Log Highlighter! Your contributions help make log analysis better for everyone. 🚀

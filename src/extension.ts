@@ -211,7 +211,7 @@ export function activate(context: vscode.ExtensionContext) {
   }
 
   //register filterTreeViewProvider under id 'filters-gamma' which gets attached
-  //to the Log Analysis Gamma activity bar according to package.json's contributes>views>filter_gamma_project_setting
+  //to the Smart Log Highlighter activity bar according to package.json's contributes>views>filter_gamma_project_setting
   const view = vscode.window.createTreeView(
     "filters-gamma",
     { treeDataProvider: state.filterTreeViewProvider, showCollapseAll: true }
@@ -219,11 +219,11 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(view);
 
   //register exFilterTreeViewProvider under id 'filters-gamma.minus' which gets attached
-  //to the Log Analysis Gamma activity bar according to package.json's contributes>views>filter_gamma_project_setting
+  //to the Smart Log Highlighter activity bar according to package.json's contributes>views>filter_gamma_project_setting
   vscode.window.registerTreeDataProvider('filters-gamma.minus', state.exFilterTreeViewProvider);
 
   //register projectTreeViewProvider under id 'filters-gamma.settings' which gets attached
-  //to the Log Analysis Gamma activity bar according to package.json's contributes>views>filter_gamma_project_setting
+  //to the Smart Log Highlighter activity bar according to package.json's contributes>views>filter_gamma_project_setting
   vscode.window.registerTreeDataProvider(
     "filters-gamma.settings",
     state.projectTreeViewProvider);
@@ -283,7 +283,7 @@ export function activate(context: vscode.ExtensionContext) {
     "log-analysis-gamma.editProject",
     (treeItem: vscode.TreeItem) => {
       if (treeItem === undefined) {
-        vscode.window.showErrorMessage('This command is excuted with button in Log Analysis Gamma Projects');
+        vscode.window.showErrorMessage('This command is excuted with button in Smart Log Highlighter Projects');
         return;
       }
       editProject(treeItem, state, () => {
@@ -297,7 +297,7 @@ export function activate(context: vscode.ExtensionContext) {
     "log-analysis-gamma.deleteProject",
     (treeItem: vscode.TreeItem) => {
       if (treeItem === undefined) {
-        vscode.window.showErrorMessage('This command is excuted with button in Log Analysis Gamma Projects');
+        vscode.window.showErrorMessage('This command is excuted with button in Smart Log Highlighter Projects');
         return;
       }
       handleLastProjectDeletion(treeItem, state)
@@ -327,7 +327,7 @@ export function activate(context: vscode.ExtensionContext) {
     "log-analysis-gamma.selectProject",
     (projectIdOrTreeItem: string | vscode.TreeItem) => {
       if (projectIdOrTreeItem === undefined) {
-        vscode.window.showErrorMessage('This command is excuted with button in Log Analysis Gamma Projects');
+        vscode.window.showErrorMessage('This command is excuted with button in Smart Log Highlighter Projects');
         return;
       }
       
@@ -344,7 +344,7 @@ export function activate(context: vscode.ExtensionContext) {
       
       if (selectProject(treeItem, state)) {
         updateExplorerTitle(view, state);
-        // Stay in the current Log Analysis Gamma view instead of switching to Explorer
+        // Stay in the current Smart Log Highlighter view instead of switching to Explorer
       }
     });
   context.subscriptions.push(disposableSelectProject);

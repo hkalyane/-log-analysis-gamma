@@ -7,7 +7,7 @@ The extension uses a project-based system to manage different filter configurati
 ## Quick Fix Steps:
 
 ### 1. Open Project Panel
-- Look for "Log Analysis Gamma" in the Activity Bar (left sidebar)
+- Look for "Smart Log Highlighter" in the Activity Bar (left sidebar)
 - Click on it to open the Projects management panel
 
 ### 2. Create a New Project

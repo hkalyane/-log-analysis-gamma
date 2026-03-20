@@ -1,4 +1,4 @@
-# 📸 Log Analysis Gamma - Visual Interface Guide
+# 📸 Smart Log Highlighter - Visual Interface Guide
 
 ## 🎯 Main Interface Overview
 

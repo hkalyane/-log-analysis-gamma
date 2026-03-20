@@ -137,7 +137,7 @@ No action required! The system automatically:
 ### **Power Users**
 Configure for your specific workflow:
 1. Open VS Code Settings (`Ctrl+,`)
-2. Search for "Log Analysis Gamma"
+2. Search for "Smart Log Highlighter"
 3. Adjust "Editor Selection Strategy"
 4. Set "Max Editors To Process" based on your needs
 
@@ -158,4 +158,4 @@ Configure for your specific workflow:
 - Set maxEditorsToProcess to 5-7
 - Keep autoDetectLogFiles enabled
 
-This selective processing system makes Log Analysis Gamma significantly more efficient while maintaining all functionality!
+This selective processing system makes Smart Log Highlighter significantly more efficient while maintaining all functionality!

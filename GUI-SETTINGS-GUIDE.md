@@ -1,6 +1,6 @@
 # GUI Access for Performance Settings
 
-Log Analysis Gamma provides multiple intuitive ways to access and configure performance settings through VS Code's GUI.
+Smart Log Highlighter provides multiple intuitive ways to access and configure performance settings through VS Code's GUI.
 
 ## 🎛️ **Method 1: Quick Performance Settings (New!)**
 
@@ -27,14 +27,14 @@ $(gear) Open Full Settings   Advanced Configuration
 ```
 
 ### **Sidebar Access:**
-- Click the $(gear) gear icon in the Log Analysis Gamma sidebar
+- Click the $(gear) gear icon in the Smart Log Highlighter sidebar
 - Quick access from the main filter view
 
 ## 🎛️ **Method 2: VS Code Settings UI**
 
 ### **Steps:**
 1. Open Settings: `Ctrl+,` (or `Cmd+,` on Mac)
-2. Search for "Log Analysis Gamma"
+2. Search for "Smart Log Highlighter"
 3. Configure using dropdowns and controls:
 
 ### **Available Settings:**

@@ -1,4 +1,4 @@
-# 🚀 Log Analysis Gamma v1.5.1 - Features Showcase
+# 🚀 Smart Log Highlighter v1.5.1 - Features Showcase
 
 ## 📸 **Visual Feature Guide**
 
@@ -6,7 +6,7 @@
 
 **Projects View - Everything in One Place:**
 ```
-┌─ Log Analysis Gamma ────────────────────────┐
+┌─ Smart Log Highlighter ────────────────────────┐
 │  📁 Projects                               │
 │    ├─ 📄 FUJI Project ✓                   │
 │    ├─ 📄 Production Monitoring             │

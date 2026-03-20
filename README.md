@@ -1,4 +1,4 @@
-# 🚀 Log Analysis Advanced
+# 🚀 Smart Log Highlighter
 
 [![Version](https://img.shields.io/vscode-marketplace/v/hkalyane.log-analysis-gamma.svg?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=hkalyane.log-analysis-gamma)
 [![Download](https://img.shields.io/visual-studio-marketplace/d/hkalyane.log-analysis-gamma)](https://marketplace.visualstudio.com/items?itemName=hkalyane.log-analysis-gamma)
@@ -15,7 +15,7 @@ Transform your log analysis workflow with intelligent filters, customizable perf
 
 ### 📁 **Main Extension Interface**
 ```
-┌─ Log Analysis Advanced (Activity Bar) ─────────────────────┐
+┌─ Smart Log Highlighter (Activity Bar) ──────────────────┐
 │                                                         │
 │ 📂 Projects                                             │
 │ ├─ 📄 Production Logs ✓ (Selected)                     │
@@ -234,7 +234,7 @@ After:  [████████] Minimal Memory (Active Only)
 ## 🚀 **What's New in v1.5.3 - LATEST RELEASE**
 
 ### 🎯 **Enhanced Professional Branding**
-- **✅ Rebranded to "Log Analysis Advanced"** - Professional enterprise-ready name
+- **✅ Rebranded to "Smart Log Highlighter"** - Unique, distinct extension name
 - **✅ Enhanced marketplace description** - Emphasizes advanced capabilities and enterprise features
 - **✅ Continued version progression** - Seamless update for existing users
 - **✅ Maintained marketplace presence** - All existing ratings, downloads, and user base preserved
@@ -363,7 +363,7 @@ Large Project Performance Test Results:
 
 ### **1. Basic Usage (Individual Developer)**
 ```
-1️⃣ Open Log Analysis Gamma from Activity Bar
+1️⃣ Open Smart Log Highlighter from Activity Bar
 2️⃣ Create a new project or use default "NONAME" 
 3️⃣ Add filter group (e.g., "Errors")
 4️⃣ Add regex filter (e.g., "ERROR|FATAL")
@@ -483,7 +483,7 @@ Result: Clear performance insights without noise
 
 ---
 
-## 🏆 **Why Choose Log Analysis Gamma?**
+## 🏆 **Why Choose Smart Log Highlighter?**
 
 ### ✅ **Performance Leader**
 ```
@@ -560,7 +560,7 @@ This extension is a fork of the original [Log Analysis](https://github.com/SoySa
 
 ---
 
-**🎉 Ready to transform your log analysis workflow? Install Log Analysis Advanced and experience the difference!**
+**🎉 Ready to transform your log analysis workflow? Install Smart Log Highlighter and experience the difference!**
 
 ## 🚀 What's New in Gamma v1.5.1 - **LATEST RELEASE**
 
@@ -643,7 +643,7 @@ See comprehensive screenshots and examples of all features including performance
 - **Improved performance** - optimized decoration handling
 
 ### 🎯 Enhanced Project Navigation
-- **Activity bar integration** - all views moved to dedicated Log Analysis Gamma activity bar
+- **Activity bar integration** - all views moved to dedicated Smart Log Highlighter activity bar
 - **Improved project switching** - seamless navigation between different log analysis setups
 - **Better organization** - cleaner interface with logical grouping
 
@@ -728,7 +728,7 @@ We distinguish between [Basic Users](#basic-users) and [Advanced Users](#advance
 
 ### Basic Users
 
-Basic users simply set up and manage filter groups to use for log analysis. The Primary SideBar (`FILTERS+`/`FILTERS-`) is designed for their use, where they can configure filters within these groups without worrying about project management. They can save the filter configurations for reuse, ensuring that settings persist even after restarting VSCode. If users don't need the advanced project management features, they can disable the ActivityBar (`Log Analysis Gamma`) menu for a simpler interface.
+Basic users simply set up and manage filter groups to use for log analysis. The Primary SideBar (`FILTERS+`/`FILTERS-`) is designed for their use, where they can configure filters within these groups without worrying about project management. They can save the filter configurations for reuse, ensuring that settings persist even after restarting VSCode. If users don't need the advanced project management features, they can disable the ActivityBar (`Smart Log Highlighter`) menu for a simpler interface.
 
 #### Basic Operation
 
@@ -736,7 +736,7 @@ The basic operation for log analysis is as follows.
 
 ![default_usage](./image/default_usage.gif)
 
-For basic users, log analysis can be performed directly in the `FILTERS+` tab without needing to access the `Log Analysis Gamma` menu. The `FILTERS+` tab, a **NONAME** project is automatically created and used. When saving filters, the project will be saved, and a message confirming the save will appear in the status bar. The tab will display all the necessary filter groups, where users can activate filters or control highlights to focus on log analysis using Focus Mode.
+For basic users, log analysis can be performed directly in the `FILTERS+` tab without needing to access the `Smart Log Highlighter` menu. The `FILTERS+` tab, a **NONAME** project is automatically created and used. When saving filters, the project will be saved, and a message confirming the save will appear in the status bar. The tab will display all the necessary filter groups, where users can activate filters or control highlights to focus on log analysis using Focus Mode.
 
 The left editor holds the original document, and all the lines that matches any of the filters have been highlighted. The right editor holds the focus mode of the left document, and notice that the lines which don't match any of the filters' regex are gone. The focus mode is implemented as a virtual document (read-only), and the original document is not modified.
 
@@ -814,13 +814,13 @@ Advanced users can leverage the project management features available. For these
 
 Since logs can be accessed independently of any specific workspace or folder, these projects enable users to centralize and consistently manage their filter settings, ensuring they can switch between different log analysis setups without confusion. This flexibility allows advanced users to efficiently manage various log types, such as development logs, QA issue logs, or platform-specific logs, within distinct projects.
 
-This extension also creates a `Log Analysis Gamma` in the ActivityBar.
+This extension also creates a `Smart Log Highlighter` in the ActivityBar.
 
 ![new-project](./image/new_project.gif)
 
-In the `Log Analysis Gamma` menu, advanced users can add, remove, or select projects, and the selected project's filter configuration will be reflected in the `FILTERS+` tab. After selecting a project, users will be directed to the `FILTERS+` tab, where you can see the project name. From there, users can click the add group icon to create a group, then add necessary filters within the group. To save the configured project, click the project save icon in the `FILTERS+` tab.
+In the `Smart Log Highlighter` menu, advanced users can add, remove, or select projects, and the selected project's filter configuration will be reflected in the `FILTERS+` tab. After selecting a project, users will be directed to the `FILTERS+` tab, where you can see the project name. From there, users can click the add group icon to create a group, then add necessary filters within the group. To save the configured project, click the project save icon in the `FILTERS+` tab.
 
-All filters will initially be set to the disabled state when a project is selected and loaded. Clicking the refresh icon in the `Log Analysis Gamma` menu will reload the saved filter information. Advanced users can also modify the filter setup directly by editing the JSON configuration file via the settings gear icon in the `Log Analysis Gamma` menu. (Note: After modifying the JSON file, users must refresh to apply the changes.)
+All filters will initially be set to the disabled state when a project is selected and loaded. Clicking the refresh icon in the `Smart Log Highlighter` menu will reload the saved filter information. Advanced users can also modify the filter setup directly by editing the JSON configuration file via the settings gear icon in the `Smart Log Highlighter` menu. (Note: After modifying the JSON file, users must refresh to apply the changes.)
 
 ## Handling Huge Files
 

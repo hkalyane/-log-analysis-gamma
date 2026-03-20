@@ -2,7 +2,7 @@
 
 ## 🎯 **Overview**
 
-The Log Analysis Gamma extension now supports **shared project settings** that allow multiple VS Code instances to use the same configuration and filters. This enables teams to share consistent log analysis setups across different development environments.
+The Smart Log Highlighter extension now supports **shared project settings** that allow multiple VS Code instances to use the same configuration and filters. This enables teams to share consistent log analysis setups across different development environments.
 
 ## ✨ **Key Features**
 

@@ -1,4 +1,4 @@
-# Performance Testing Guide - Log Analysis Gamma v1.4.1
+# Performance Testing Guide - Smart Log Highlighter v1.4.1
 
 ## 🚀 Testing Performance Optimizations
 

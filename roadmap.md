@@ -1,4 +1,4 @@
-# Log Analysis Gamma - Roadmap
+# Smart Log Highlighter - Roadmap
 
 ## ✅ Completed in v1.5.0 (November 2025)
 
@@ -33,7 +33,7 @@
 - [X] Custom hex color input with validation
 - [X] Enhanced focus mode (removed underlines, maintained functionality)
 - [X] Real-time updates (focus mode refreshes automatically)
-- [X] Activity bar integration (dedicated Log Analysis Gamma section)
+- [X] Activity bar integration (dedicated Smart Log Highlighter section)
 
 ### 🔗 Navigation & Focus Mode
 - [X] Connect to a keybinding (Ctrl/Cmd + H)

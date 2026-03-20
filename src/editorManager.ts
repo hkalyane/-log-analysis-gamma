@@ -1,4 +1,4 @@
-// Enhanced Editor Management System for Log Analysis Gamma
+// Enhanced Editor Management System for Smart Log Highlighter
 // This module provides selective editor processing for optimal performance
 
 import * as vscode from 'vscode';

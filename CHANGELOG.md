@@ -150,7 +150,7 @@ All notable changes to the "log-analysis-gamma" extension will be documented in 
 - **🎨 Interactive Color Picker**: Added 15 emoji-themed color options for better visual organization and quick filter identification
 - **🔗 Enhanced Focus Mode**: Removed underlines from clickable links while maintaining full functionality for improved readability
 - **🔄 Real-time Updates**: Focus mode now refreshes automatically when filters are added, edited, or deleted
-- **🎯 Enhanced Project Navigation**: Moved all views to dedicated Log Analysis Gamma activity bar for better organization
+- **🎯 Enhanced Project Navigation**: Moved all views to dedicated Smart Log Highlighter activity bar for better organization
 
 ### 🛠️ Technical Improvements
 - Added `noUnderlineDecorationType` to State object for centralized decoration management

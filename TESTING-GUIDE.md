@@ -1,4 +1,4 @@
-# Log Analysis Gamma - Testing Guide
+# Smart Log Highlighter - Testing Guide
 
 ## Step-by-Step Testing Instructions
 
@@ -6,7 +6,7 @@
 - Open `test-log.txt` in VS Code
 
 ### 2. Set up the extension views
-- Look for "Log Analysis Gamma" in the Activity Bar (left sidebar) - click it
+- Look for "Smart Log Highlighter" in the Activity Bar (left sidebar) - click it
 - In the Explorer, you should see "Filters+" and "Filters-" sections
 
 ### 3. Create a filter group
