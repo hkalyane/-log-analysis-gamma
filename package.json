@@ -8,7 +8,7 @@
     "url": "https://github.com/hkalyane/-log-analysis-gamma.git"
   },
   "icon": "image/icon.png",
-  "version": "1.5.4",
+  "version": "1.5.5",
   "engines": {
     "vscode": "^1.49.0"
   },
@@ -320,7 +320,7 @@
       ]
     },
     "configuration": {
-              "title": "Smart Log Highlighter",
+      "title": "Smart Log Highlighter",
       "properties": {
         "logAnalysisGamma.userColors": {
           "type": "array",
@@ -349,7 +349,12 @@
         },
         "logAnalysisGamma.editorSelectionStrategy": {
           "type": "string",
-          "enum": ["active", "visible", "relevant", "adaptive"],
+          "enum": [
+            "active",
+            "visible",
+            "relevant",
+            "adaptive"
+          ],
           "default": "adaptive",
           "description": "Strategy for selecting which editors to apply filters to",
           "enumDescriptions": [
@@ -380,7 +385,13 @@
             "type": "string",
             "pattern": "^\\.[a-zA-Z0-9]+$"
           },
-          "default": [".log", ".txt", ".out", ".err", ".trace"],
+          "default": [
+            ".log",
+            ".txt",
+            ".out",
+            ".err",
+            ".trace"
+          ],
           "description": "File extensions to consider as 'relevant' for the relevant editor selection strategy",
           "scope": "application"
         }
