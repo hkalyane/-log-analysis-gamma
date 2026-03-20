@@ -1,0 +1,39 @@
+{
+  "editorSelectionStrategy": "adaptive",
+  "maxEditorsToProcess": 3,
+  "autoDetectLogFiles": true,
+  "showRandomColorNotifications": true,
+  "maxRememberedColors": 10,
+  "projects": [
+    {
+      "id": "0.46536484059879357",
+      "name": "Test",
+      "selected": true,
+      "groups": [
+        {
+          "filters": [
+            {
+              "regex": {},
+              "color": "#8b4513",
+              "isHighlighted": false,
+              "isShown": false,
+              "id": "0.6359118436938223",
+              "iconPath": {
+                "$mid": 1,
+                "path": "image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIHN0cm9rZT0iIzhiNDUxMyIgZmlsbD0idHJhbnNwYXJlbnQiIHN0cm9rZS13aWR0aD0iMTAiIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIvPjwvc3ZnPg==",
+                "scheme": "data"
+              },
+              "count": 0
+            }
+          ],
+          "name": "G1",
+          "isHighlighted": false,
+          "isShown": false,
+          "id": "0.9689878217344501"
+        }
+      ]
+    }
+  ],
+  "filters": [],
+  "exclusionFilters": []
+}

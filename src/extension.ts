@@ -27,6 +27,8 @@ import {
   loadProjectSettings,
   saveProjectSettings,
   refreshProjectSettings,
+  openSharedFilterFile,
+  unloadSharedFilterFile,
   showProjectSettingsInfo,
   openProjectSettingsManager,
   importInternalProjects
@@ -523,6 +525,16 @@ export function activate(context: vscode.ExtensionContext) {
     "log-analysis-gamma.refreshUnifiedSettings",
     () => refreshProjectSettings(context, state));
   context.subscriptions.push(disposableRefreshUnifiedSettings);
+
+  let disposableOpenSharedFilterFile = vscode.commands.registerCommand(
+    "log-analysis-gamma.openUnifiedSettings",
+    () => openSharedFilterFile(context));
+  context.subscriptions.push(disposableOpenSharedFilterFile);
+
+  let disposableUnloadSharedFilterFile = vscode.commands.registerCommand(
+    "log-analysis-gamma.unloadUnifiedSettings",
+    () => unloadSharedFilterFile(context, state));
+  context.subscriptions.push(disposableUnloadSharedFilterFile);
 }
 
 // this method is called when your extension is deactivated

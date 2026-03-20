@@ -78,6 +78,14 @@ export class ProjectSettingsManager {
     }
 
     /**
+     * Clear the remembered project settings file path
+     */
+    async clearSettingsPath(): Promise<void> {
+        this.currentSettingsPath = undefined;
+        await this.context.globalState.update('lastProjectSettingsPath', undefined);
+    }
+
+    /**
      * Load project settings from file
      */
     async loadProjectSettings(filePath?: string): Promise<ProjectSettings | undefined> {

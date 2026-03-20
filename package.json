@@ -8,7 +8,7 @@
     "url": "https://github.com/hkalyane/-log-analysis-gamma.git"
   },
   "icon": "image/icon.png",
-  "version": "1.5.5",
+  "version": "1.5.6",
   "engines": {
     "vscode": "^1.49.0"
   },
@@ -123,7 +123,7 @@
       },
       {
         "command": "log-analysis-gamma.openSettings",
-        "title": "Open Settings",
+        "title": "Open Internal Filter Settings",
         "icon": "$(gear)"
       },
       {
@@ -154,20 +154,32 @@
       },
       {
         "command": "log-analysis-gamma.loadUnifiedSettings",
-        "title": "Load Unified Settings",
+        "title": "Load Shared Filter File",
         "icon": "$(folder-opened)",
         "category": "Smart Log Highlighter"
       },
       {
         "command": "log-analysis-gamma.saveUnifiedSettings",
-        "title": "Save Unified Settings",
+        "title": "Save Project Settings",
         "icon": "$(save)",
         "category": "Smart Log Highlighter"
       },
       {
         "command": "log-analysis-gamma.refreshUnifiedSettings",
-        "title": "Refresh Unified Settings",
+        "title": "Refresh Project Settings",
         "icon": "$(refresh)",
+        "category": "Smart Log Highlighter"
+      },
+      {
+        "command": "log-analysis-gamma.openUnifiedSettings",
+        "title": "Open Shared Filter File",
+        "icon": "$(go-to-file)",
+        "category": "Smart Log Highlighter"
+      },
+      {
+        "command": "log-analysis-gamma.unloadUnifiedSettings",
+        "title": "Unload Shared Filter File",
+        "icon": "$(close)",
         "category": "Smart Log Highlighter"
       }
     ],
@@ -271,9 +283,19 @@
           "group": "navigation@5"
         },
         {
-          "command": "log-analysis-gamma.openPerformanceSettings",
+          "command": "log-analysis-gamma.openUnifiedSettings",
           "when": "view == filters-gamma.settings",
           "group": "navigation@6"
+        },
+        {
+          "command": "log-analysis-gamma.unloadUnifiedSettings",
+          "when": "view == filters-gamma.settings",
+          "group": "navigation@7"
+        },
+        {
+          "command": "log-analysis-gamma.openPerformanceSettings",
+          "when": "view == filters-gamma.settings",
+          "group": "navigation@8"
         },
         {
           "command": "log-analysis-gamma.addExFilter",

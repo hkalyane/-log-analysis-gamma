@@ -100,4 +100,18 @@ export class FocusProvider implements vscode.TextDocumentContentProvider {
   update(groups: Group[]) {
     this.groups = groups;
   }
+
+  getOriginalUri(focusUri: vscode.Uri): vscode.Uri {
+    return vscode.Uri.parse(focusUri.path);
+  }
+
+  getOriginalLineNumber(focusUriString: string, focusLineNumber: number): number | undefined {
+    const focusUri = vscode.Uri.parse(focusUriString);
+    const originalUri = vscode.Uri.parse(focusUri.path);
+    const lineMap = this.documentLineMap.get(originalUri.fsPath);
+    if (lineMap && focusLineNumber < lineMap.length) {
+      return lineMap[focusLineNumber];
+    }
+    return undefined;
+  }
 }

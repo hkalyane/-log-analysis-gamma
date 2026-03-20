@@ -2,7 +2,23 @@
 
 All notable changes to the "log-analysis-gamma" extension will be documented in this file.
 
-## 1.5.1 - **LATEST RELEASE** 🎯
+## 1.5.6 - **LATEST RELEASE** 🎯
+
+### 💾 Improved Save Workflow
+- **NEW**: Save command always shows QuickPick with options: Save to Current Shared File, Save to External Project File, Save to Internal Project
+- **IMPROVED**: Users always see where settings are being saved — no more silent saves
+- **IMPROVED**: When a shared file is loaded, it appears as an option alongside internal and new external file
+
+### 🔄 Unified Refresh
+- **NEW**: Refresh command reloads both internal settings and shared file in one click
+- **IMPROVED**: No warning when no shared file is loaded — internal settings still refresh
+- **IMPROVED**: Clear feedback message showing what was refreshed
+
+### 🏷️ Updated Command Titles
+- **CHANGED**: "Save Shared Filter File" → "Save Project Settings"
+- **CHANGED**: "Refresh Shared Filter File" → "Refresh Project Settings"
+
+## 1.5.1 🎯
 
 ### 🔧 Configurable File Types for Performance Optimization
 - **NEW**: Customizable file extensions for "Relevant Only" strategy via VS Code settings

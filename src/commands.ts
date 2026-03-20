@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import * as path from "path";
 import { State, applyNoUnderlineDecoration } from "./extension";
 import { generateRandomColor, generateSvgUri, setStatusBarMessage, getProjectSelectedIndex, setProjectSelectedFlag, getPredefinedColors, generateSmartRandomColor, generateTrulyRandomColor, UserColorMemory } from "./utils";
 import { readSettings, saveSettings } from "./settings";
@@ -948,34 +949,44 @@ export async function loadProjectSettings(context: vscode.ExtensionContext, stat
 
 export async function saveProjectSettings(context: vscode.ExtensionContext, state: State) {
   const manager = ProjectSettingsManager.getInstance(context);
-  
-  // If we have a current project settings file, save to it
-  if (manager.getCurrentSettingsPath()) {
-    await manager.saveProjectSettings(undefined, state);
-  } else {
-    // If no external project settings file, offer choice between internal and external save
-    const choice = await vscode.window.showQuickPick([
-      {
-        label: "Save to External Project File",
-        description: "Create shareable JSON settings file",
-        detail: "Save filters and settings to external file for team sharing"
-      },
-      {
-        label: "Save to Internal Project",
-        description: "Save to VS Code extension storage",  
-        detail: "Save filter groups to currently selected internal project"
-      }
-    ], {
-      placeHolder: "Choose how to save your project settings",
-      title: "Project Settings Save Options"
-    });
+  const currentPath = manager.getCurrentSettingsPath();
 
-    if (choice?.label === "Save to External Project File") {
-      await createProjectSettings(context, state);
-    } else if (choice?.label === "Save to Internal Project") {
-      // Call the original saveProject functionality
-      saveProject(state);
+  const options: vscode.QuickPickItem[] = [];
+
+  // If an external file is already loaded, offer to save to it
+  if (currentPath) {
+    options.push({
+      label: "Save to Current Shared File",
+      description: currentPath,
+      detail: "Save filters and settings to the currently loaded shared file"
+    });
+  }
+
+  options.push(
+    {
+      label: "Save to External Project File",
+      description: "Create shareable JSON settings file",
+      detail: "Save filters and settings to external file for team sharing"
+    },
+    {
+      label: "Save to Internal Project",
+      description: "Save to VS Code extension storage",
+      detail: "Save filter groups to currently selected internal project"
     }
+  );
+
+  const choice = await vscode.window.showQuickPick(options, {
+    placeHolder: "Choose how to save your project settings",
+    title: "Project Settings Save Options"
+  });
+
+  if (choice?.label === "Save to Current Shared File") {
+    await manager.saveProjectSettings(undefined, state);
+  } else if (choice?.label === "Save to External Project File") {
+    await createProjectSettings(context, state);
+  } else if (choice?.label === "Save to Internal Project") {
+    // Call the original saveProject functionality
+    saveProject(state);
   }
 }
 
@@ -997,20 +1008,64 @@ export async function createProjectSettings(context: vscode.ExtensionContext, st
   }
 }
 
-export async function refreshProjectSettings(context: vscode.ExtensionContext, state: State) {
+export async function unloadSharedFilterFile(context: vscode.ExtensionContext, state: State) {
   const manager = ProjectSettingsManager.getInstance(context);
-  
-  if (!manager.getCurrentSettingsPath()) {
-    vscode.window.showWarningMessage('No project settings file to refresh');
+  const settingsPath = manager.getCurrentSettingsPath();
+
+  if (!settingsPath) {
+    vscode.window.showWarningMessage('No shared filter file is currently loaded.');
     return;
   }
 
-  const settings = await manager.loadProjectSettings();
-  if (settings) {
-    await manager.applyProjectSettings(settings, state);
-    refreshEditors(state);
-    vscode.window.showInformationMessage(`$(refresh) Refreshed project settings from: ${manager.getCurrentSettingsPath()}`);
+  const confirm = await vscode.window.showWarningMessage(
+    `Unload shared filter file: ${path.basename(settingsPath)}?`,
+    'Unload', 'Cancel'
+  );
+
+  if (confirm === 'Unload') {
+    await manager.clearSettingsPath();
+    vscode.window.showInformationMessage('$(check) Shared filter file unloaded. Using internal settings only.');
   }
+}
+
+export async function openSharedFilterFile(context: vscode.ExtensionContext) {
+  const manager = ProjectSettingsManager.getInstance(context);
+  const settingsPath = manager.getCurrentSettingsPath();
+
+  if (!settingsPath) {
+    vscode.window.showWarningMessage('No shared filter file loaded. Use "Load Shared Filter File" first.');
+    return;
+  }
+
+  try {
+    const doc = await vscode.workspace.openTextDocument(settingsPath);
+    await vscode.window.showTextDocument(doc);
+  } catch {
+    vscode.window.showErrorMessage(`Could not open shared filter file: ${settingsPath}`);
+  }
+}
+
+export async function refreshProjectSettings(context: vscode.ExtensionContext, state: State) {
+  const manager = ProjectSettingsManager.getInstance(context);
+  const sharedPath = manager.getCurrentSettingsPath();
+
+  // Always reload internal settings
+  refreshSettings(state);
+
+  // Also reload shared file if one is loaded
+  if (sharedPath) {
+    const settings = await manager.loadProjectSettings();
+    if (settings) {
+      await manager.applyProjectSettings(settings, state);
+      refreshEditors(state);
+    }
+  }
+
+  vscode.window.showInformationMessage(
+    sharedPath
+      ? `$(refresh) Refreshed internal settings and shared file: ${sharedPath}`
+      : `$(refresh) Refreshed internal settings`
+  );
 }
 
 export async function importInternalProjects(context: vscode.ExtensionContext, state: State) {

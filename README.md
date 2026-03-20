@@ -231,7 +231,27 @@ After:  [████████] Minimal Memory (Active Only)
 
 ---
 
-## 🚀 **What's New in v1.5.3 - LATEST RELEASE**
+## 🚀 **What's New in v1.5.6 - LATEST RELEASE**
+
+### 💾 **Improved Save Workflow**
+- **✅ Save prompt always shown** — clicking Save now always presents a QuickPick with options:
+  - **Save to Current Shared File** (when a shared file is loaded)
+  - **Save to External Project File** (create new shareable JSON)
+  - **Save to Internal Project** (VS Code extension storage)
+- **✅ No more silent saves** — users always see where settings are being saved
+
+### 🔄 **Unified Refresh**
+- **✅ Refresh reloads both internal and shared settings** in one click
+- **✅ No warning when no shared file is loaded** — internal settings still refresh
+- **✅ Clear feedback message** showing what was refreshed
+
+### 🏷️ **Updated Command Titles**
+- **✅ "Save Project Settings"** — reflects the new multi-target save behavior
+- **✅ "Refresh Project Settings"** — reflects the unified refresh behavior
+
+---
+
+## 🚀 **Previous Updates - v1.5.3**
 
 ### 🎯 **Enhanced Professional Branding**
 - **✅ Rebranded to "Smart Log Highlighter"** - Unique, distinct extension name
