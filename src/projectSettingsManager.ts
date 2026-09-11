@@ -4,15 +4,22 @@ import * as path from 'path';
 import type { State } from './extension';
 import { StoredFilter, StoredProject, deserializeFilter, deserializeProject, getSettingFile, saveSettings, serializeFilter, serializeProject } from './settings';
 import { Filter, Group, Project } from './utils';
+import { TimeProfile, validateTimeProfile } from './timeFilter';
 
-export type SaveSection = 'all' | 'filters' | 'exclusions' | 'settings';
+export type SaveSection = 'all' | 'filters' | 'exclusions' | 'settings' | 'filterData';
 export type StorageFile = { path: string; internal: boolean; loaded: boolean; dirty: boolean; error?: string };
 const configurationKeys = ['editorSelectionStrategy', 'maxEditorsToProcess', 'autoDetectLogFiles',
-    'showRandomColorNotifications', 'maxRememberedColors', 'relevantFileExtensions', 'userColors'] as const;
+    'showRandomColorNotifications', 'maxRememberedColors', 'relevantFileExtensions', 'userColors', 'contextBefore', 'contextAfter', 'timeProfiles', 'processingTimeoutMs'] as const;
 
 function decodeSettings(settings: ProjectSettings): { projects: Project[]; exclusions: Filter[] } {
     if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
         throw new Error('Expected a project settings object');
+    }
+    if (settings.timeProfiles !== undefined) {
+        if (!settings.timeProfiles || typeof settings.timeProfiles !== 'object' || Array.isArray(settings.timeProfiles)) {
+            throw new Error('Expected document time profiles');
+        }
+        Object.values(settings.timeProfiles).forEach(validateTimeProfile);
     }
     for (const key of ['projects', 'filters', 'exclusionFilters'] as const) {
         if (settings[key] !== undefined && !Array.isArray(settings[key])) {
@@ -40,6 +47,10 @@ function decodeSettings(settings: ProjectSettings): { projects: Project[]; exclu
 }
 
 export interface ProjectSettings {
+    timeProfiles?: Record<string, TimeProfile>;
+    processingTimeoutMs?: number;
+    contextBefore?: number;
+    contextAfter?: number;
     relevantFileExtensions?: string[];
     userColors?: string[];
     editorSelectionStrategy: 'active' | 'visible' | 'relevant' | 'adaptive';
@@ -121,6 +132,7 @@ export class ProjectSettingsManager {
 
     async initializeFiles(state: State): Promise<void> {
         state.settingsManager = this;
+        state.projectTreeViewProvider.setSources(() => this.getFiles(state));
         const internalPath = getSettingFile(state.globalStorageUri);
         if (!fs.existsSync(internalPath)) {
             saveSettings(state.globalStorageUri, [], []);
@@ -167,6 +179,7 @@ export class ProjectSettingsManager {
             if (targetPath !== getSettingFile(state.globalStorageUri)) {
                 await this.setSettingsPath(targetPath);
             }
+            state.filterHistory?.clear();
             this.updateState(state);
             return true;
         } catch (error) {
@@ -205,10 +218,20 @@ export class ProjectSettingsManager {
         this.sources.delete(targetPath);
         this.fileErrors.delete(targetPath);
         await this.clearSettingsPath(targetPath);
+        state.filterHistory?.clear();
         this.updateState(state);
     }
 
-    async saveFile(filePath: string, state: State, section: SaveSection = 'all'): Promise<boolean> {
+    async saveAllChangedFiles(state: State): Promise<{ saved: string[]; failed: string[] }> {
+        const result: { saved: string[]; failed: string[] } = { saved: [], failed: [] };
+        for (const file of this.getFiles(state).filter(candidate => candidate.loaded && candidate.dirty)) {
+            const success = await this.saveFile(file.path, state, 'filterData', true);
+            (success ? result.saved : result.failed).push(file.path);
+        }
+        return result;
+    }
+
+    async saveFile(filePath: string, state: State, section: SaveSection = 'all', quiet = false): Promise<boolean> {
         const targetPath = path.resolve(filePath);
         try {
             const saved = this.sources.get(targetPath);
@@ -219,12 +242,12 @@ export class ProjectSettingsManager {
             decodeSettings(settings);
             const current = this.fileContent(targetPath, state);
             const nextSaved = { ...saved };
-            if (section === 'all' || section === 'filters') {
+            if (section === 'all' || section === 'filterData' || section === 'filters') {
                 settings.projects = current.projects;
                 settings.filters = (settings.filters || []).filter(filter => filter.isExclusionFilter);
                 nextSaved.projects = current.projects;
             }
-            if (section === 'all' || section === 'exclusions') {
+            if (section === 'all' || section === 'filterData' || section === 'exclusions') {
                 settings.exclusionFilters = current.exclusions;
                 settings.filters = (settings.filters || []).filter(filter => !filter.isExclusionFilter);
                 nextSaved.exclusions = current.exclusions;
@@ -236,7 +259,9 @@ export class ProjectSettingsManager {
             this.sources.set(targetPath, nextSaved);
             this.fileErrors.delete(targetPath);
             this.refreshFiles();
-            vscode.window.showInformationMessage(`Saved ${section} to ${targetPath}`);
+            if (!quiet) {
+                vscode.window.showInformationMessage(`Saved ${section} to ${targetPath}`);
+            }
             return true;
         } catch (error) {
             vscode.window.showErrorMessage(`Could not save ${targetPath}: ${error}`);

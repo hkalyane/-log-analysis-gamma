@@ -1,6 +1,9 @@
 import * as vscode from "vscode";
 import { Filter, Group } from "./utils";
 import { DocumentCacheManager } from "./documentCache";
+import { FocusResult } from './logProcessor';
+import { logProcessing } from './processing';
+import { TimeProfile, TimeSummary } from './timeFilter';
 
 //Provide virtual documents as a strings that only contain lines matching shown filters.
 //These virtual documents have uris of the form "focus-gamma:<original uri>" where
@@ -16,16 +19,33 @@ export class FocusProvider implements vscode.TextDocumentContentProvider {
    * that match the filtering criteria.
    */
   public documentLineMap: Map<string, number[]> = new Map();
+  public timelines = new Map<string, TimeSummary>();
+  private generations = new Map<string, number>();
+  private documentVersions = new Map<string, number>();
+  private lineMapEmitter = new vscode.EventEmitter<vscode.Uri>();
+  readonly onDidUpdateLineMap = this.lineMapEmitter.event;
 
   //open the original document specified by the uri and return the focused version of its text
-  async provideTextDocumentContent(uri: vscode.Uri): Promise<string> {
+  async provideTextDocumentContent(uri: vscode.Uri, token?: vscode.CancellationToken): Promise<string> {
     let originalUri = vscode.Uri.parse(uri.path);
+    const key = originalUri.toString();
+    const generation = (this.generations.get(key) || 0) + 1;
+    this.generations.set(key, generation);
+    logProcessing.cancel('focus:' + key);
     let sourceCode = await vscode.workspace.openTextDocument(originalUri);
+    const version = sourceCode.version;
+    if (this.generations.get(key) !== generation || logProcessing.paused) {
+      throw new vscode.CancellationError();
+    }
 
     // Performance optimization: use document cache
     const cacheManager = DocumentCacheManager.getInstance();
     const documentCache = cacheManager.getCache(sourceCode);
     const lines = documentCache.getLines();
+    const config = vscode.workspace.getConfiguration('logAnalysisGamma');
+    const before = Math.max(0, Math.min(100, config.get<number>('contextBefore', 0)));
+    const after = Math.max(0, Math.min(100, config.get<number>('contextAfter', 0)));
+    const timeProfile = config.get<Record<string, TimeProfile>>('timeProfiles', {})[originalUri.toString()];
 
     // start the string with an empty line to make room for the focus mode text decoration
     let resultArr: string[] = [""];
@@ -47,43 +67,38 @@ export class FocusProvider implements vscode.TextDocumentContentProvider {
     }
 
     // Early exit if no active filters
-    if (activeShownFilters.length === 0) {
+    if (activeShownFilters.length === 0 && !timeProfile) {
+      this.documentLineMap.set(originalUri.fsPath, resultLineArr);
+      this.documentVersions.set(key, version);
+      this.timelines.delete(originalUri.toString());
+      this.lineMapEmitter.fire(uri);
       return resultArr.join("\n");
     }
 
-    // Performance optimization: process each line only once
-    for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
-      const line = lines[lineIdx];
-      let lineMatched = false;
-
-      // Check if line matches any active shown filter
-      for (const filter of activeShownFilters) {
-        if (filter.regex.test(line)) {
-          // Check exclusion filters
-          let isExcluded = false;
-          for (const exFilter of this.exFilters) {
-            if (exFilter.isShown && exFilter.regex.test(line)) {
-              isExcluded = true;
-              if (exFilter.count === undefined) {
-                exFilter.count = 0;
-              }
-              exFilter.count++;
-              break; // Exit early from exclusion check
-            }
-          }
-          
-          if (!isExcluded) {
-            resultArr.push(line);
-            resultLineArr.push(lineIdx);
-          }
-          lineMatched = true;
-          break; // Exit early from filter check since line is already matched
-        }
-      }
+    const exclusions = this.exFilters.filter(filter => filter.isShown);
+    const pattern = (filter: Filter) => ({ regex: filter.regex.source, flags: filter.regex.flags, id: filter.id });
+    const result = await logProcessing.run<FocusResult>('focus:' + originalUri.toString(), 'focus', {
+      lines, before, after, timeProfile: timeProfile ? { ...timeProfile } : undefined,
+      filters: activeShownFilters.map(pattern), exclusions: exclusions.map(pattern)
+    }, token);
+    if (sourceCode.version !== version || this.generations.get(key) !== generation) {
+      throw new vscode.CancellationError();
     }
+    result.counts.forEach((count, index) => exclusions[index].count = count);
+    if (result.timeline) {
+      this.timelines.set(originalUri.toString(), result.timeline);
+    } else {
+      this.timelines.delete(originalUri.toString());
+    }
+    result.indices.forEach(index => {
+      resultArr.push(lines[index]);
+      resultLineArr.push(index);
+    });
 
     if (resultLineArr.length) {
       this.documentLineMap.set(originalUri.fsPath, resultLineArr);
+      this.documentVersions.set(key, version);
+      this.lineMapEmitter.fire(uri);
     }
     return resultArr.join("\n");
   }
@@ -108,6 +123,11 @@ export class FocusProvider implements vscode.TextDocumentContentProvider {
   getOriginalLineNumber(focusUriString: string, focusLineNumber: number): number | undefined {
     const focusUri = vscode.Uri.parse(focusUriString);
     const originalUri = vscode.Uri.parse(focusUri.path);
+    const version = this.documentVersions.get(originalUri.toString());
+    const original = vscode.workspace.textDocuments.find(document => document.uri.toString() === originalUri.toString());
+    if (version !== undefined && original && original.version !== version) {
+      return undefined;
+    }
     const lineMap = this.documentLineMap.get(originalUri.fsPath);
     if (lineMap && focusLineNumber < lineMap.length) {
       return lineMap[focusLineNumber];

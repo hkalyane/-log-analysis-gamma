@@ -5,6 +5,36 @@
 [![Installs](https://img.shields.io/visual-studio-marketplace/i/hkalyane.log-analysis-gamma)](https://marketplace.visualstudio.com/items?itemName=hkalyane.log-analysis-gamma)
 [![Average Rating](https://img.shields.io/vscode-marketplace/r/hkalyane.log-analysis-gamma.svg?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=hkalyane.log-analysis-gamma)
 
+## See It in Action
+
+Recorded in VS Code with the current development build and a synthetic RTL/DMA log. These short demos loop automatically; each has a still-image alternative.
+
+### Highlight Logs
+
+![Animated demo toggling regex highlights for register writes, errors, and warnings in the original log](docs/images/demo-highlighting.gif)
+
+Add regex filters in **Filters+**, then use the paint-can icon to toggle highlighting. Each filter keeps its own color and match count. [View still image](docs/images/demo-highlighting.png).
+
+### Bookmark Important Lines
+
+![Animated demo adding a bookmark note, changing the blue marker to orange, and displaying the note on hover](docs/images/demo-bookmarks.gif)
+
+Right-click a log line and choose **Bookmark Log Line...**. Add a note, then use **Change Bookmark Color...** in **Bookmarks** to choose a color. Hover over the marked line's text to read the note. [View still image](docs/images/demo-bookmarks.png).
+
+### Filter by Time or Cycle
+
+![Animated demo selecting the RTL cycle profile, entering bounds 65689 through 65691, confirming parsed samples, and opening the ranged result](docs/images/demo-time-range.gif)
+
+Run **Time / Cycle Range...**, choose **Cycle Count (RTL / DMAC)**, enter inclusive bounds, and confirm the parsed preview. The demo keeps cycles **65689-65691**; the same wizard also supports UVM simulation time and wall-clock profiles. [View still image](docs/images/demo-time-range.png).
+
+### Focus on Matching Lines
+
+![Animated before-and-after demo showing the full log followed by only matching lines in Focus Mode, with the bookmark retained](docs/images/demo-focus-mode.gif)
+
+Enable filter visibility, then run **Turn on Focus Mode** or press **Ctrl+H** (**Cmd+H** on macOS). Matching lines retain their colors and bookmarks; filtered lines link back to the original log. [View still image](docs/images/demo-focus-mode.png).
+
+---
+
 **🎯 Professional log analysis with intelligent filtering, focus mode, and enterprise team collaboration!**
 
 Transform your log analysis workflow with intelligent filters, customizable performance optimization, and seamless team sharing. Perfect for debugging, monitoring, and analyzing large log files with up to **90% performance improvement**.
@@ -20,7 +50,7 @@ Transform your log analysis workflow with intelligent filters, customizable perf
 │ 📂 Projects                                             │
 │ ├─ 📄 Production Logs ✓ (Selected)                     │
 │ ├─ 📄 Debug Session                                     │
-│ └─ 📄 FUJI Project                                      │
+│ └─ 📄 NEWYORK Project                                      │
 │                                                         │
 │ 🎯 Filters+                                             │
 │ ├─ 🗂️ Critical Issues                                   │
@@ -741,11 +771,48 @@ Your project settings now contain everything in one place:
 - The **Storage Files** view lists the exact internal storage path and every loaded external file. Full paths appear beside each entry and in its tooltip; use **Copy Settings File Path** from the context menu to copy one.
 - **Load Shared Filter File** accepts multiple JSON files. Each file's selected project contributes groups to **Filters+**, and exclusions from all loaded files participate in Focus Mode. Switching projects affects only that file. Projects and filter tooltips identify their source path.
 - Use the **X** beside an external file to unload only that file. It does not delete the file. Unsaved filter changes offer **Save and Unload**, **Discard and Unload**, or **Cancel**; a failed save keeps the file loaded. Internal storage remains available.
-- New groups, filters, exclusions, and projects prompt for their destination file. Adding a regular filter to a different source uses a matching group name in that file, creating the group if needed. Changes stay in memory until saved; an asterisk marks files with unsaved filter changes.
+- **Add Filter** uses its group's source file automatically. Use the group's **Add Filter to Another File...** context action to choose a different source; it uses a matching group name there, creating the group if needed. New groups, exclusions, and projects ask for a destination only when more than one file is available. Changes stay in memory until saved; an asterisk marks unsaved filter changes.
 - **Save Project Settings** first asks for a destination, showing each full path, then offers **Filters, Exclusions and Settings**, **Filters Only**, **Exclusion Filters Only**, or **Settings Only**. A row's save button selects that row as the destination. Only content belonging to that file is saved; other loaded files and unselected sections are unchanged.
 - **Create Empty Settings File** creates and loads a new destination without overwriting an existing file. Load or create a destination before assigning new filters to it.
 - Loading external filters does not change global VS Code settings. Use **Apply Settings from This File** in the file's context menu to select its settings explicitly. The chosen settings source is remembered for restart. Saved settings include the editor strategy/limits, log detection, relevant file extensions, color memory, and notification preferences.
 - Missing or invalid remembered files remain visible with a warning and can be reloaded or unloaded. Failed loads leave working filters untouched.
+
+#### **Productivity Controls**
+- **Save All Changed Filters** in Storage Files saves changed regular filters and exclusions to their original files in one action. It preserves each file's settings and skips unchanged files. Failed files remain dirty and can be retried; the result reports both successes and failures.
+- **Search Filters...** in either filter toolbar searches group names, regex text, and source paths across the currently active groups and exclusions. **Clear Filter Search** restores all rows. Search only changes the sidebar, not highlighting or Focus Mode behavior.
+- Filter creation and regex editing show a **live regex preview** with a matching-line count and up to three sample lines from the active document. Preview scans the first 10,000 lines or 1,000,000 characters, whichever limit comes first, and labels partial scans. Invalid or timed-out previews cannot be accepted. Without an active document it checks syntax only; editing preserves regex flags. The worker has a 500ms deadline and is canceled when input changes or closes.
+- **Undo Filter Change** and **Redo Filter Change** in the filter toolbars restore additions, deletions, regex edits, colors, highlight/visibility toggles, and group/project edits. History retains 30 changes for the current session. Undo does not write files: save afterward to persist it. Saving retains history; a successful file load/reload or unload clears it to avoid restoring stale sources. These commands do not replace the text editor's Undo/Redo shortcuts.
+- **Projects** groups entries under compact source-file rows, with project counts, unsaved markers, and warnings. File and project tooltips retain full paths; the existing Show/Hide Paths toggle still controls visible paths. Source-row context actions open, copy the path, or unload the file.
+
+#### **Investigation Tools**
+- **Context Lines...** adds 0-100 lines before and after Focus Mode matches (default zero). Overlapping windows are merged in source order. Exclusions and an active time range also apply to context, and links retain the original line numbers.
+- Select text on one line and use **Highlight This Text** or **Exclude This Text** in the editor context menu. These escape regex metacharacters by default. **Regex Filter from Selection...** is the explicit regex option. Creation follows source-file selection and supports undo.
+- **Export Focused Results...** and **Copy Focused Results...** export a fresh result, with optional one-based original line numbers. The synthetic Focus Mode header is omitted; file export refuses the source log as its destination.
+- **Bookmark Log Line...** stores an optional note in workspace storage. The Bookmarks view supports opening, editing notes, removal, and previous/next navigation within the current log. Focus Mode bookmarks reference the original file. If a log moves lines, opening a bookmark searches for a unique text match; changed, missing, or ambiguous anchors show a warning. Bookmarks are not part of shared filter files and cannot reliably track externally rewritten logs with duplicate lines.
+- Bookmarks display a **blue bookmark glyph beside the line number** by default, including bookmarks saved before color support. Use the color button beside a bookmark in **Bookmarks**, or **Change Bookmark Color...** from its context menu/Command Palette, to choose a swatch or custom hex color. Colors are saved per bookmark and shown in both the sidebar and editor gutter. Editing the note keeps the chosen color. Markers also appear on matching Focus Mode lines and disappear when the bookmark is removed or its source location cannot be verified.
+- Hover over the **bookmarked line's text** to see its note and original line number. VS Code's stable extension API does not provide a separate hover message for the gutter glyph itself. Notes are displayed as untrusted plain text, not executable Markdown links. If gutter markers are hidden, enable the VS Code **Editor: Glyph Margin** setting.
+- **Pause / Resume Log Processing** and **Cancel Active Log Processing** are available in the Command Palette, Filters+ menu, and processing status bar. Pause clears highlights and stops new work until resumed. Cancellation may leave the last completed focus view visible. Focus filtering, timestamp extraction, and highlight cache misses run in workers with a configurable deadline (10 seconds by default); superseded jobs are canceled and stale document results are discarded. At most four worker jobs run concurrently. This still reads the document into memory; it is not a streaming viewer for arbitrarily large files.
+
+#### **Time and Cycle Profiles**
+Use **Time / Cycle Range...** from the editor context menu or Command Palette with the source log active. Profiles are scoped to the original document URI, so unrelated logs can use different clocks. The wizard previews up to the first 5,000 lines or 1,000,000 characters before Apply. Full processing uses the complete document. **Time / Cycle Summary** reports first/last/minimum/maximum parsed values, invalid and untimestamped lines, sample conversions, and backward jumps. The status bar shows the active range; **Clear Time / Cycle Range** removes it for that document.
+
+For this RTL/DMAC log:
+```text
+[DmacRunSeq          ]|(cycle:65689  )| Writing to SYDMASRCADDRLO=0080012
+```
+1. Choose **Cycle Count (RTL / DMAC)**.
+2. Keep the capture pattern `\(\s*cycle\s*:\s*(\d+)\s*\)`.
+3. Enter inclusive cycle bounds, for example `65000` through `66000`.
+4. Choose whether untimestamped continuation lines inherit the preceding timestamp or are excluded.
+5. Confirm the preview showing `65689 cycles`, then turn on Focus Mode. A time range can work alone without a regular filter.
+
+Clock types are explicit:
+- **Cycles** are non-negative whole counts, compared exactly even beyond JavaScript's safe integer limit. Register addresses are not treated as time. No clock period is guessed. For conversion using a known period, choose the simulation profile, replace its capture pattern with the cycle pattern, choose the physical unit, and set the duration of one unitless tick.
+- **UVM / simulation time** uses `@` timestamps by default, for example `UVM_INFO @ 1250 ns:` or `UVM_INFO @ 1250:`. Capture group 1 is the number; optional group 2 is a unit. Supported units are `fs`, `ps`, `ns`, `us`, `ms`, and `s`. Explicit units are normalized exactly; unitless values use the chosen unit and scale. A tick of `10 ns` is configured as unit `ns`, scale `10`. Bounds with units such as `1.25 us` override the unitless scale.
+- **Wall-clock timestamps** support full ISO dates with UTC offsets, or custom Luxon date-format tokens and an explicit UTC/IANA timezone (for example `yyyy-MM-dd HH:mm:ss.SSS` and `Asia/Kolkata`). Invalid dates, timezone gaps, ambiguous daylight-saving times without offsets, and fractions finer than milliseconds are rejected. Time-only wall-clock strings cannot supply an unknown date; use a numeric elapsed-time profile or provide a full date.
+- All preset capture patterns are editable for other log formats and specific clock domains. Group 1 must capture only the desired clock value. Numeric captures and scales support up to 80 decimal digits; scientific notation is not supported. An unmatched line can inherit its preceding timestamp, but malformed matching timestamps break inheritance; preamble lines without a preceding timestamp are excluded.
+- Bounds are inclusive. If shown regular filters exist, both regex and time conditions must match. Exclusions win, including on context lines. Counter resets and backward timestamps are reported, not sorted or assigned invented epochs: every event whose local value falls in the range is eligible, including events in repeated runs. Narrow the input or capture pattern when one file mixes clocks or simulation runs.
+- Profiles, context settings, and the worker deadline are included in **Settings Only** / **Filters, Exclusions and Settings** saves for internal or external files. **Save All Changed Filters** does not replace settings. When sharing across machines, document URI keys may need adapting to local file locations; use **Apply Settings from This File** to apply saved settings explicitly.
 
 #### **🔄 Easy Migration**
 1. Click **"Import Internal Projects"** in Projects view

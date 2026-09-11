@@ -1,0 +1,19 @@
+RTL DMA simulation: timeline test
+[DmacRunSeq          ]|(cycle:65687  )| INFO Starting DMA transaction
+[DmacRunSeq          ]|(cycle:65688  )| INFO Preparing source address
+[DmacRunSeq          ]|(cycle:65689  )| Writing to SYSDMASRCADDRLO=01080012
+    Source address detail: bank=1 offset=0x12
+[DmacRunSeq          ]|(cycle:65690  )| Writing to SYSDMADSTADDRLO=02080034
+    Destination address detail: bank=2 offset=0x34
+[DmacRunSeq          ]|(cycle:65691  )| ERROR DMA response timeout
+[DmacRunSeq          ]|(cycle:65692  )| WARN Retrying transaction
+[DmacRunSeq          ]|(cycle:65693  )| INFO Retry completed
+    Diagnostic address=65689 is not a cycle timestamp
+[DmacRunSeq          ]|(cycle:0      )| INFO Simulation counter reset
+[DmacRunSeq          ]|(cycle:1      )| INFO Starting second run
+[DmacRunSeq          ]|(cycle:65689  )| INFO Second run source write
+    Second run detail: transaction=2
+[DmacRunSeq          ]|(cycle:65690  )| INFO Second run transfer completed
+[DmacRunSeq          ]|(cycle:65692  )| INFO Second run cleanup
+[DmacRunSeq          ]|(cycle:9007199254740993)| INFO Exact large cycle count A
+[DmacRunSeq          ]|(cycle:9007199254740994)| INFO Exact large cycle count B

@@ -32,7 +32,9 @@ import {
   showProjectSettingsInfo,
   openProjectSettingsManager,
   importInternalProjects,
-  chooseStorageFile
+  chooseStorageFile,
+  searchFilters,
+  setFilterSearch
 } from "./commands";
 import { FilterTreeViewProvider } from "./filterTreeViewProvider";
 import { ProjectTreeViewProvider } from "./projectTreeViewProvider";
@@ -42,9 +44,16 @@ import { Project, Group, Filter } from "./utils";
 import { openSettings } from "./settings";
 import { DocumentCacheManager } from "./documentCache";
 import { ProjectSettingsManager } from "./projectSettingsManager";
+import { FilterHistory } from './filterHistory';
 import { StorageFileItem, StorageFilesTreeViewProvider } from "./storageFilesTreeViewProvider";
+import { clearTimeRange, configureContext, configureTimeRange, exportFocused, filterFromSelection, showTimeSummary } from './investigationCommands';
+import { BookmarkItem, BookmarkManager } from './bookmarks';
+import { logProcessing } from './processing';
+import { TimeProfile } from './timeFilter';
 
 export type State = {
+  highlightGeneration?: number;
+  filterHistory?: FilterHistory;
   settingsManager?: ProjectSettingsManager;
   inFocusMode: boolean;
   projects: Project[];
@@ -109,7 +118,106 @@ export async function activate(context: vscode.ExtensionContext) {
   refreshEditors(state);
 
   const filePathFromItem = (item?: StorageFileItem | string) => typeof item === 'string' ? item : item?.filePath;
+  const bookmarks = new BookmarkManager(context.workspaceState);
+  bookmarks.attachDecorations(state.focusProvider);
+  const processingStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 50);
+  const timeStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 49);
+  const updateProcessingStatus = () => {
+    processingStatus.text = logProcessing.paused ? '$(debug-pause) Logs paused' : logProcessing.activeJobs ? `$(sync~spin) Logs: ${logProcessing.activeJobs}` : '$(check) Logs';
+    processingStatus.tooltip = logProcessing.activeJobs ? 'Cancel active log processing' : logProcessing.paused ? 'Resume log processing' : 'Pause log processing';
+    processingStatus.command = logProcessing.activeJobs ? 'log-analysis-gamma.cancelProcessing' : 'log-analysis-gamma.toggleProcessing';
+    processingStatus.show();
+    vscode.commands.executeCommand('setContext', 'logAnalysisGamma.processingPaused', logProcessing.paused);
+  };
+  const updateTimeStatus = () => {
+    const active = vscode.window.activeTextEditor?.document.uri;
+    const uri = active?.scheme === 'focus-gamma' ? state.focusProvider.getOriginalUri(active) : active;
+    const profile = uri && vscode.workspace.getConfiguration('logAnalysisGamma').get<Record<string, TimeProfile>>('timeProfiles', {})[uri.toString()];
+    if (profile) {
+      timeStatus.text = `$(clock) ${profile.kind}: ${profile.start || '*'} .. ${profile.end || '*'}`;
+      timeStatus.tooltip = `${uri!.fsPath}\n${profile.pattern}\nConfigure time / cycle range`;
+      timeStatus.command = 'log-analysis-gamma.timeRange';
+      timeStatus.show();
+    } else {
+      timeStatus.hide();
+    }
+  };
+  updateProcessingStatus();
+  updateTimeStatus();
   context.subscriptions.push(
+    processingStatus, timeStatus, logProcessing,
+    logProcessing.onDidChange(updateProcessingStatus),
+    vscode.window.onDidChangeActiveTextEditor(updateTimeStatus),
+    vscode.workspace.onDidChangeConfiguration(event => {
+      if (event.affectsConfiguration('logAnalysisGamma.timeProfiles')) { updateTimeStatus(); }
+    }),
+    vscode.commands.registerCommand('log-analysis-gamma.toggleProcessing', () => {
+      logProcessing.setPaused(!logProcessing.paused);
+      if (logProcessing.paused) {
+        state.highlightGeneration = (state.highlightGeneration || 0) + 1;
+        state.decorations.forEach(decoration => decoration.dispose());
+        state.decorations = [];
+      } else { refreshEditors(state); }
+    }),
+    vscode.commands.registerCommand('log-analysis-gamma.cancelProcessing', () => logProcessing.cancelAll()),
+    bookmarks,
+    vscode.window.createTreeView('filters-gamma.bookmarks', { treeDataProvider: bookmarks }),
+    vscode.commands.registerCommand('log-analysis-gamma.addBookmark', () => bookmarks.addFromEditor(state.focusProvider)),
+    vscode.commands.registerCommand('log-analysis-gamma.openBookmark', (item: BookmarkItem) => item && bookmarks.open(item)),
+    vscode.commands.registerCommand('log-analysis-gamma.editBookmark', (item: BookmarkItem) => item && bookmarks.editNote(item)),
+    vscode.commands.registerCommand('log-analysis-gamma.changeBookmarkColor', async (item?: BookmarkItem) => {
+      const selected = item || await vscode.window.showQuickPick(bookmarks.getChildren().map(bookmarkItem => ({
+        label: String(bookmarkItem.label), description: String(bookmarkItem.description), item: bookmarkItem
+      })), { title: 'Choose Bookmark' }).then(choice => choice?.item);
+      if (selected) { await bookmarks.changeColor(selected); }
+    }),
+    vscode.commands.registerCommand('log-analysis-gamma.deleteBookmark', (item: BookmarkItem) => item && bookmarks.remove(item.bookmark.id)),
+    vscode.commands.registerCommand('log-analysis-gamma.nextBookmark', () => bookmarks.navigate(1, state.focusProvider)),
+    vscode.commands.registerCommand('log-analysis-gamma.previousBookmark', () => bookmarks.navigate(-1, state.focusProvider)),
+    vscode.commands.registerCommand('log-analysis-gamma.timeRange', () => configureTimeRange(state)),
+    vscode.commands.registerCommand('log-analysis-gamma.clearTimeRange', () => clearTimeRange(state)),
+    vscode.commands.registerCommand('log-analysis-gamma.timeSummary', () => showTimeSummary(state)),
+    vscode.commands.registerCommand('log-analysis-gamma.contextLines', configureContext),
+    vscode.commands.registerCommand('log-analysis-gamma.highlightSelection', () => filterFromSelection(state, false)),
+    vscode.commands.registerCommand('log-analysis-gamma.excludeSelection', () => filterFromSelection(state, true)),
+    vscode.commands.registerCommand('log-analysis-gamma.regexSelection', async () => {
+      const action = await vscode.window.showQuickPick(['Highlight', 'Exclude'], { title: 'Regex Selection Filter' });
+      if (action) {
+        await filterFromSelection(state, action === 'Exclude', true);
+      }
+    }),
+    vscode.commands.registerCommand('log-analysis-gamma.exportFocused', () => exportFocused(state, false)),
+    vscode.commands.registerCommand('log-analysis-gamma.copyFocused', () => exportFocused(state, true)),
+    vscode.workspace.onDidChangeConfiguration(event => {
+      if (event.affectsConfiguration('logAnalysisGamma.contextBefore') || event.affectsConfiguration('logAnalysisGamma.contextAfter') || event.affectsConfiguration('logAnalysisGamma.timeProfiles')) {
+        refreshEditors(state);
+      }
+    }),
+    vscode.commands.registerCommand('log-analysis-gamma.undoFilterChange', () => {
+      const label = state.filterHistory?.undo(state);
+      if (label) {
+        refreshEditors(state);
+        vscode.window.setStatusBarMessage(`Undid: ${label}`, 3000);
+      }
+    }),
+    vscode.commands.registerCommand('log-analysis-gamma.redoFilterChange', () => {
+      const label = state.filterHistory?.redo(state);
+      if (label) {
+        refreshEditors(state);
+        vscode.window.setStatusBarMessage(`Redid: ${label}`, 3000);
+      }
+    }),
+    vscode.commands.registerCommand('log-analysis-gamma.addFilterToFile', (item: vscode.TreeItem) => item && addFilter(item, state, true)),
+    vscode.commands.registerCommand('log-analysis-gamma.searchFilters', () => searchFilters(state)),
+    vscode.commands.registerCommand('log-analysis-gamma.clearFilterSearch', () => setFilterSearch(state, '')),
+    vscode.commands.registerCommand('log-analysis-gamma.saveAllFilters', async () => {
+      const result = await settingsManager.saveAllChangedFiles(state);
+      if (result.failed.length) {
+        vscode.window.showWarningMessage(`Saved ${result.saved.length} files; failed: ${result.failed.join(', ')}`);
+      } else {
+        vscode.window.showInformationMessage(result.saved.length ? `Saved filters in ${result.saved.length} files` : 'No unsaved filter changes');
+      }
+    }),
     vscode.window.createTreeView('filters-gamma.files', { treeDataProvider: new StorageFilesTreeViewProvider(settingsManager, state) }),
     vscode.commands.registerCommand('log-analysis-gamma.openStorageFile', (item?: StorageFileItem | string) =>
       openSharedFilterFile(context, state, filePathFromItem(item))),
@@ -166,7 +274,11 @@ export async function activate(context: vscode.ExtensionContext) {
         vscode.window.showErrorMessage('Invalid index.');
         return;
       }
-      const originalLine = documentLineMap[virtualLineIndex];
+      const originalLine = state.focusProvider.getOriginalLineNumber(virtualUri.toString(), virtualLineIndex);
+      if (originalLine === undefined || virtualLineIndex === 0) {
+        vscode.window.showWarningMessage('The source changed; refresh Focus Mode before navigating.');
+        return;
+      }
 
       // Check if the original file is already open (in any tab, including preview mode).
       let openEditor = vscode.window.visibleTextEditors.find(
@@ -262,7 +374,10 @@ export async function activate(context: vscode.ExtensionContext) {
     state.projectTreeViewProvider);
 
   updateExplorerTitle(view, state);
-  context.subscriptions.push(settingsManager.onDidChangeFiles(() => updateExplorerTitle(view, state)));
+  context.subscriptions.push(settingsManager.onDidChangeFiles(() => {
+    updateExplorerTitle(view, state);
+    state.projectTreeViewProvider.refresh();
+  }));
 
   //Add events listener
   var disposableOnDidChangeVisibleTextEditors =

@@ -7,6 +7,9 @@ import { DocumentCacheManager } from "./documentCache";
 import { PerformanceUtils } from "./performanceUtils";
 import { EditorManager, EditorSelectionStrategy } from "./editorManager";
 import { ProjectSettingsManager, SaveSection } from "./projectSettingsManager";
+import { askRegex } from "./regexPreview";
+import { recordFilterChange } from './filterHistory';
+import { logProcessing } from './processing';
 
 function hasHighlightedFilter(state: State): boolean {
   let hasHighlighted: boolean = false;
@@ -23,10 +26,12 @@ function hasHighlightedFilter(state: State): boolean {
   return hasHighlighted;
 }
 
-export function applyHighlight(
+export async function applyHighlight(
   state: State,
   editors?: readonly vscode.TextEditor[]
-): void {
+): Promise<void> {
+  const generation = (state.highlightGeneration || 0) + 1;
+  state.highlightGeneration = generation;
   // Get editor selection strategy from configuration
   const config = vscode.workspace.getConfiguration('logAnalysisGamma');
   const strategy = config.get<EditorSelectionStrategy>('editorSelectionStrategy', EditorSelectionStrategy.ADAPTIVE);
@@ -63,54 +68,36 @@ export function applyHighlight(
 
   // Performance optimization: early exit if no highlighted filters
   const activeFilters = PerformanceUtils.getActiveFilters(state.groups);
-  if (activeFilters.length === 0) {
+  if (activeFilters.length === 0 || logProcessing.paused) {
     console.log("no highlight - no active filters");
     return;
   }
 
   const cacheManager = DocumentCacheManager.getInstance();
 
-  // Performance measurement for the entire highlighting process
-  EditorManager.measurePerformance(() => {
-    targetEditors.forEach((editor) => {
-      // Performance optimization: get cached document processing
+  for (const editor of targetEditors) {
+    try {
       const documentCache = cacheManager.getCache(editor.document);
-      const isFocusMode = PerformanceUtils.isFocusModeEditor(editor);
-
-      // Collect all filter ranges for batching
-      const filterRanges: Array<{ filter: any; ranges: vscode.Range[] }> = [];
-
-      // Process each active filter once per editor
-      activeFilters.forEach((filter) => {
-        // Skip if filter should not be highlighted in current context
-        if (!filter.isHighlighted || (isFocusMode && !filter.isShown)) {
-          return;
-        }
-
-        // Performance optimization: use cached regex results
-        const ranges = documentCache.getMatchingRanges(filter.regex);
-        filterRanges.push({ filter, ranges });
-
-        // Update filter count for active editor only
-        if (editor === vscode.window.activeTextEditor) {
-          filter.count = ranges.length;
-        }
+      const filters = activeFilters.filter(filter => filter.isHighlighted && (!PerformanceUtils.isFocusModeEditor(editor) || filter.isShown));
+      const matches = await documentCache.getMatchingLinesBatch(filters.map(filter => filter.regex));
+      if (state.highlightGeneration !== generation || logProcessing.paused || editor.document.isClosed || !documentCache.isValid()) {
+        return;
+      }
+      const filterRanges = filters.map((filter, index) => {
+        const ranges = matches[index].map(line => new vscode.Range(line, 0, line, 0));
+        if (editor === vscode.window.activeTextEditor) { filter.count = ranges.length; }
+        return { filter, ranges };
       });
-
-      // Performance optimization: batch decorations by color
-      const colorBatches = PerformanceUtils.batchDecorationsByColor(filterRanges);
-      
-      // Apply all decorations for this editor in batches
-      const newDecorations = PerformanceUtils.applyBatchedDecorations(
-        editor, 
-        colorBatches, 
-        state.decorations
-      );
-      
-      // Store decorations for later cleanup
-      state.decorations.push(...newDecorations);
-    });
-  }, `Highlight Processing (${targetEditors.length} editors)`);
+      const batches = PerformanceUtils.batchDecorationsByColor(filterRanges);
+      state.decorations.push(...PerformanceUtils.applyBatchedDecorations(editor, batches, state.decorations));
+    } catch (error) {
+      if (!(error instanceof vscode.CancellationError)) {
+        vscode.window.showWarningMessage(`Highlight processing stopped: ${error}`);
+      }
+      return;
+    }
+  }
+  state.filterTreeViewProvider.refresh();
 }
 
 //set bool for whether the lines matched the given filter will be kept for focus mode
@@ -119,6 +106,7 @@ export function setVisibility(
   treeItem: vscode.TreeItem,
   state: State
 ) {
+  recordFilterChange(state, 'Change visibility');
   const id = treeItem.id;
   const group = state.groups.find(group => (group.id === id));
   if (group !== undefined) {
@@ -169,6 +157,11 @@ export function turnOnFocusMode(state: State) {
 }
 
 export function deleteFilter(treeItem: vscode.TreeItem, state: State) {
+  if (!state.exFilters.some(filter => filter.id === treeItem.id)
+    && !state.groups.some(group => group.filters.some(filter => filter.id === treeItem.id))) {
+    return;
+  }
+  recordFilterChange(state, 'Delete filter');
   const deleteIndex = state.exFilters.findIndex(filter => (filter.id === treeItem.id));
   if (deleteIndex !== -1) {
     // delete ex filter
@@ -326,7 +319,8 @@ export function changeFilterColor(treeItem: vscode.TreeItem, state: State) {
 }
 
 // Helper function to apply color to filter
-function applyColorToFilter(newColor: string, treeItem: vscode.TreeItem, state: State) {
+export function applyColorToFilter(newColor: string, treeItem: vscode.TreeItem, state: State) {
+  recordFilterChange(state, 'Change filter color');
   const id = treeItem.id;
 
   // Update the filter color in both regular filters and exclusion filters
@@ -520,23 +514,26 @@ export function configureRelevantFileTypes() {
   quickPick.show();
 }
 
-export async function addFilter(treeItem: vscode.TreeItem, state: State) {
+export async function addFilter(treeItem: vscode.TreeItem, state: State, chooseAnotherFile = false) {
   let group = state.groups.find(candidate => candidate.id === treeItem.id);
   if (!group) {
     return;
   }
-  const destination = state.settingsManager ? await chooseStorageFile(state, 'Store Filter in Which File?') : undefined;
+  const destination = state.settingsManager
+    ? (chooseAnotherFile ? await chooseStorageFile(state, 'Store Filter in Which File?')
+      : group.sourcePath || await chooseStorageFile(state, 'Store Filter in Which File?', false, true))
+    : undefined;
   if (state.settingsManager && !destination) {
     return;
   }
-  const regexStr = await vscode.window.showInputBox({
+  const regexStr = await askRegex({
     prompt: "[FILTER] Type a regex to filter",
-    ignoreFocusOut: false,
-    validateInput: validateRegex
+    ignoreFocusOut: false
   });
   if (regexStr === undefined) {
     return;
   }
+  recordFilterChange(state, 'Add filter');
   if (destination && state.settingsManager && group.sourcePath !== destination) {
     const project = state.settingsManager.selectedProject(destination, state);
     const groupName = group.name;
@@ -566,43 +563,21 @@ export async function addFilter(treeItem: vscode.TreeItem, state: State) {
   refreshEditorsDebounced(state, undefined, 50);
 }
 
-function validateRegex(value: string): string | undefined {
-  try {
-    new RegExp(value);
-    return undefined;
-  } catch (error) {
-    return String(error);
+export async function editFilter(treeItem: vscode.TreeItem, state: State) {
+  const filter = state.exFilters.find(candidate => candidate.id === treeItem.id)
+    || state.groups.reduce<import('./utils').Filter[]>((filters, group) => filters.concat(group.filters), [])
+      .find(candidate => candidate.id === treeItem.id);
+  if (!filter) {
+    return;
   }
-}
-
-export function editFilter(treeItem: vscode.TreeItem, state: State) {
-  vscode.window
-    .showInputBox({
-      prompt: "[FILTER] Type a new regex",
-      ignoreFocusOut: false,
-      value: treeItem.label ? treeItem.label.toString().replace(/^\/|\/$/g, '') : ""
-    })
-    .then((regexStr) => {
-      if (regexStr === undefined) {
-        return;
-      }
-      const id = treeItem.id;
-      const exFilter = state.exFilters.find(filter => (filter.id === id));
-      if (exFilter !== undefined) {
-        exFilter.regex = new RegExp(regexStr);
-      }
-      state.groups.map(group => {
-        const filter = group.filters.find(filter => (filter.id === id));
-        if (filter !== undefined) {
-          filter.regex = new RegExp(regexStr);
-        }
-      });
-      
-      // Update the focus provider with the modified filters
-      state.focusProvider.update(state.groups);
-      
-      refreshEditorsDebounced(state, treeItem, 50);
-    });
+  const regexStr = await askRegex({ title: 'Edit Regex', value: filter.regex.source }, filter.regex.flags);
+  if (regexStr === undefined || regexStr === filter.regex.source) {
+    return;
+  }
+  recordFilterChange(state, 'Edit regex');
+  filter.regex = new RegExp(regexStr, filter.regex.flags);
+  state.focusProvider.update(state.groups);
+  refreshEditorsDebounced(state, treeItem, 50);
 }
 
 export function setHighlight(
@@ -610,6 +585,7 @@ export function setHighlight(
   treeItem: vscode.TreeItem,
   state: State
 ) {
+  recordFilterChange(state, 'Change highlighting');
   const id = treeItem.id;
   const group = state.groups.find(group => (group.id === id));
   if (group !== undefined) {
@@ -689,7 +665,7 @@ export function updateProjectTreeView(state: State) {
 }
 
 export async function addGroup(state: State) {
-  const destination = state.settingsManager ? await chooseStorageFile(state, 'Store Group in Which File?') : undefined;
+  const destination = state.settingsManager ? await chooseStorageFile(state, 'Store Group in Which File?', false, true) : undefined;
   if (state.settingsManager && !destination) {
     return;
   }
@@ -700,6 +676,7 @@ export async function addGroup(state: State) {
   if (name === undefined) {
     return;
   }
+  recordFilterChange(state, 'Add group');
   const id = `${Math.random()}`;
   const group = {
     sourcePath: destination,
@@ -729,12 +706,14 @@ export function editGroup(treeItem: vscode.TreeItem, state: State) {
     }
     const id = treeItem.id;
     const group = state.groups.find(group => (group.id === id));
+    recordFilterChange(state, 'Rename group');
     group!.name = name;
     refreshFilterTreeView(state, treeItem);
   });
 }
 
 export function deleteGroup(treeItem: vscode.TreeItem, state: State) {
+  recordFilterChange(state, 'Delete group');
   if (state.settingsManager) {
     for (const project of state.projects) {
       const groupIndex = project.groups.findIndex(group => group.id === treeItem.id);
@@ -770,7 +749,7 @@ export function saveProject(state: State) {
 }
 
 export async function addProject(state: State) {
-  const destination = state.settingsManager ? await chooseStorageFile(state, 'Store Project in Which File?') : undefined;
+  const destination = state.settingsManager ? await chooseStorageFile(state, 'Store Project in Which File?', false, true) : undefined;
   if (state.settingsManager && !destination) {
     return;
   }
@@ -781,6 +760,7 @@ export async function addProject(state: State) {
   if (name === undefined) {
     return;
   }
+  recordFilterChange(state, 'Add project');
 
   const project = {
     sourcePath: destination,
@@ -810,6 +790,7 @@ export function editProject(treeItem: vscode.TreeItem, state: State, callback: (
       }
       const findIndex = state.projects.findIndex(project => (project.id === treeItem.id));
       if (findIndex !== -1) {
+        recordFilterChange(state, 'Rename project');
         state.projects[findIndex].name = name;
         if (!state.settingsManager) {
           saveSettings(state.globalStorageUri, state.projects, state.exFilters);
@@ -856,6 +837,7 @@ export function deleteProject(treeItem: vscode.TreeItem, state: State) {
     if (!project) {
       return;
     }
+    recordFilterChange(state, 'Delete project');
     state.projects.splice(state.projects.indexOf(project), 1);
     const remaining = state.projects.filter(candidate => candidate.sourcePath === project.sourcePath);
     if (remaining.length === 0) {
@@ -990,18 +972,18 @@ export function updateExplorerTitle(view: vscode.TreeView<vscode.TreeItem>, stat
 }
 
 export async function addExFilter(state: State) {
-  const destination = state.settingsManager ? await chooseStorageFile(state, 'Store Exclusion in Which File?') : undefined;
+  const destination = state.settingsManager ? await chooseStorageFile(state, 'Store Exclusion in Which File?', false, true) : undefined;
   if (state.settingsManager && !destination) {
     return;
   }
-  const regexStr = await vscode.window.showInputBox({
+  const regexStr = await askRegex({
     prompt: "[FILTER] Type a regex to exclusion filter",
-    ignoreFocusOut: false,
-    validateInput: validateRegex
+    ignoreFocusOut: false
   });
   if (regexStr === undefined) {
     return;
   }
+  recordFilterChange(state, 'Add exclusion');
   const id = `${Math.random()}`;
   const color = generateRandomColor();
   const exFilter = {
@@ -1024,14 +1006,34 @@ export async function deleteExGroup(state: State) {
   if (state.settingsManager && !destination) {
     return;
   }
+  recordFilterChange(state, 'Clear exclusions');
   state.exFilters.splice(0, state.exFilters.length, ...state.exFilters.filter(filter => destination && filter.sourcePath !== destination));
   refreshEditors(state);
 }
 
 // Project Settings Management Commands
 
-export async function chooseStorageFile(state: State, title: string, externalOnly = false): Promise<string | undefined> {
+export function setFilterSearch(state: State, query: string): void {
+  state.filterTreeViewProvider.setSearchQuery(query);
+  state.exFilterTreeViewProvider.setSearchQuery(query);
+  vscode.commands.executeCommand('setContext', 'logAnalysisGamma.filterSearchActive', query.trim().length > 0);
+}
+
+export async function searchFilters(state: State): Promise<void> {
+  const query = await vscode.window.showInputBox({
+    title: 'Search Filters', prompt: 'Group, regex, or source file',
+    value: state.filterTreeViewProvider.getSearchQuery(), ignoreFocusOut: true
+  });
+  if (query !== undefined) {
+    setFilterSearch(state, query);
+  }
+}
+
+export async function chooseStorageFile(state: State, title: string, externalOnly = false, useSingleFile = false): Promise<string | undefined> {
   const files = state.settingsManager?.getFiles(state).filter(file => file.loaded && (!externalOnly || !file.internal)) || [];
+  if (useSingleFile && files.length === 1) {
+    return files[0].path;
+  }
   const options = files.map(file => ({
     label: file.internal ? 'Internal Settings' : path.basename(file.path),
     description: file.path,

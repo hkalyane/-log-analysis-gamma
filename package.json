@@ -36,6 +36,91 @@
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
+      { "command": "log-analysis-gamma.changeBookmarkColor", "title": "Change Bookmark Color...", "icon": "$(symbol-color)", "category": "Smart Log Highlighter" },
+      { "command": "log-analysis-gamma.toggleProcessing", "title": "Pause / Resume Log Processing", "icon": "$(debug-pause)", "category": "Smart Log Highlighter" },
+      { "command": "log-analysis-gamma.cancelProcessing", "title": "Cancel Active Log Processing", "icon": "$(debug-stop)", "category": "Smart Log Highlighter" },
+      { "command": "log-analysis-gamma.addBookmark", "title": "Bookmark Log Line...", "icon": "$(bookmark)", "category": "Smart Log Highlighter" },
+      { "command": "log-analysis-gamma.openBookmark", "title": "Open Bookmark", "icon": "$(go-to-file)", "category": "Smart Log Highlighter" },
+      { "command": "log-analysis-gamma.editBookmark", "title": "Edit Bookmark Note", "icon": "$(edit)", "category": "Smart Log Highlighter" },
+      { "command": "log-analysis-gamma.deleteBookmark", "title": "Delete Bookmark", "icon": "$(close)", "category": "Smart Log Highlighter" },
+      { "command": "log-analysis-gamma.nextBookmark", "title": "Next Bookmark", "icon": "$(arrow-down)", "category": "Smart Log Highlighter" },
+      { "command": "log-analysis-gamma.previousBookmark", "title": "Previous Bookmark", "icon": "$(arrow-up)", "category": "Smart Log Highlighter" },
+      { "command": "log-analysis-gamma.timeRange", "title": "Time / Cycle Range...", "icon": "$(clock)", "category": "Smart Log Highlighter" },
+      { "command": "log-analysis-gamma.clearTimeRange", "title": "Clear Time / Cycle Range", "icon": "$(clear-all)", "category": "Smart Log Highlighter" },
+      { "command": "log-analysis-gamma.timeSummary", "title": "Time / Cycle Summary", "icon": "$(graph)", "category": "Smart Log Highlighter" },
+      {
+        "command": "log-analysis-gamma.contextLines",
+        "title": "Context Lines...",
+        "icon": "$(list-selection)",
+        "category": "Smart Log Highlighter"
+      },
+      {
+        "command": "log-analysis-gamma.highlightSelection",
+        "title": "Highlight This Text",
+        "icon": "$(paintcan)",
+        "category": "Smart Log Highlighter"
+      },
+      {
+        "command": "log-analysis-gamma.excludeSelection",
+        "title": "Exclude This Text",
+        "icon": "$(eye-closed)",
+        "category": "Smart Log Highlighter"
+      },
+      {
+        "command": "log-analysis-gamma.regexSelection",
+        "title": "Regex Filter from Selection...",
+        "category": "Smart Log Highlighter"
+      },
+      {
+        "command": "log-analysis-gamma.exportFocused",
+        "title": "Export Focused Results...",
+        "icon": "$(export)",
+        "category": "Smart Log Highlighter"
+      },
+      {
+        "command": "log-analysis-gamma.copyFocused",
+        "title": "Copy Focused Results...",
+        "icon": "$(copy)",
+        "category": "Smart Log Highlighter"
+      },
+      {
+        "command": "log-analysis-gamma.undoFilterChange",
+        "title": "Undo Filter Change",
+        "icon": "$(discard)",
+        "enablement": "logAnalysisGamma.canUndoFilters",
+        "category": "Smart Log Highlighter"
+      },
+      {
+        "command": "log-analysis-gamma.redoFilterChange",
+        "title": "Redo Filter Change",
+        "icon": "$(redo)",
+        "enablement": "logAnalysisGamma.canRedoFilters",
+        "category": "Smart Log Highlighter"
+      },
+      {
+        "command": "log-analysis-gamma.searchFilters",
+        "title": "Search Filters...",
+        "icon": "$(search)",
+        "category": "Smart Log Highlighter"
+      },
+      {
+        "command": "log-analysis-gamma.clearFilterSearch",
+        "title": "Clear Filter Search",
+        "icon": "$(clear-all)",
+        "category": "Smart Log Highlighter"
+      },
+      {
+        "command": "log-analysis-gamma.addFilterToFile",
+        "title": "Add Filter to Another File...",
+        "icon": "$(new-file)",
+        "category": "Smart Log Highlighter"
+      },
+      {
+        "command": "log-analysis-gamma.saveAllFilters",
+        "title": "Save All Changed Filters",
+        "icon": "$(save-all)",
+        "category": "Smart Log Highlighter"
+      },
       {
         "command": "log-analysis-gamma.showProjectFilePaths",
         "title": "Show Project File Paths",
@@ -232,7 +317,70 @@
       }
     ],
     "menus": {
+      "editor/context": [
+        { "command": "log-analysis-gamma.addBookmark", "group": "logAnalysis@6" },
+        { "command": "log-analysis-gamma.timeRange", "group": "logAnalysis@4" },
+        { "command": "log-analysis-gamma.timeSummary", "group": "logAnalysis@5" },
+        {
+          "command": "log-analysis-gamma.highlightSelection",
+          "when": "editorHasSelection",
+          "group": "logAnalysis@1"
+        },
+        {
+          "command": "log-analysis-gamma.excludeSelection",
+          "when": "editorHasSelection",
+          "group": "logAnalysis@2"
+        },
+        {
+          "command": "log-analysis-gamma.regexSelection",
+          "when": "editorHasSelection",
+          "group": "logAnalysis@3"
+        }
+      ],
+      "editor/title": [
+        { "command": "log-analysis-gamma.timeRange", "when": "resourceScheme == focus-gamma", "group": "navigation@4" },
+        { "command": "log-analysis-gamma.clearTimeRange", "when": "resourceScheme == focus-gamma", "group": "investigation@1" },
+        { "command": "log-analysis-gamma.timeSummary", "when": "resourceScheme == focus-gamma", "group": "investigation@2" },
+        {
+          "command": "log-analysis-gamma.exportFocused",
+          "when": "resourceScheme == focus-gamma",
+          "group": "navigation@1"
+        },
+        {
+          "command": "log-analysis-gamma.copyFocused",
+          "when": "resourceScheme == focus-gamma",
+          "group": "navigation@2"
+        },
+        {
+          "command": "log-analysis-gamma.contextLines",
+          "when": "resourceScheme == focus-gamma",
+          "group": "navigation@3"
+        }
+      ],
       "view/item/context": [
+        { "command": "log-analysis-gamma.changeBookmarkColor", "when": "view == filters-gamma.bookmarks", "group": "inline@2" },
+        { "command": "log-analysis-gamma.editBookmark", "when": "view == filters-gamma.bookmarks", "group": "inline@1" },
+        { "command": "log-analysis-gamma.deleteBookmark", "when": "view == filters-gamma.bookmarks", "group": "inline@2" },
+        {
+          "command": "log-analysis-gamma.openStorageFile",
+          "when": "view == filters-gamma.settings && viewItem =~ /^source-/",
+          "group": "file@1"
+        },
+        {
+          "command": "log-analysis-gamma.copyStoragePath",
+          "when": "view == filters-gamma.settings && viewItem =~ /^source-/",
+          "group": "file@2"
+        },
+        {
+          "command": "log-analysis-gamma.unloadUnifiedSettings",
+          "when": "view == filters-gamma.settings && viewItem =~ /^source-external-/",
+          "group": "file@3"
+        },
+        {
+          "command": "log-analysis-gamma.addFilterToFile",
+          "when": "view == filters-gamma && viewItem =~ /^g-/",
+          "group": "file@1"
+        },
         {
           "command": "log-analysis-gamma.openStorageFile",
           "when": "view == filters-gamma.files",
@@ -285,7 +433,7 @@
         },
         {
           "command": "log-analysis-gamma.editProject",
-          "when": "view == filters-gamma.settings",
+          "when": "view == filters-gamma.settings && viewItem == project",
           "group": "inline@3"
         },
         {
@@ -320,11 +468,41 @@
         },
         {
           "command": "log-analysis-gamma.deleteProject",
-          "when": "view == filters-gamma.settings",
+          "when": "view == filters-gamma.settings && viewItem == project",
           "group": "inline@7"
         }
       ],
       "view/title": [
+        { "command": "log-analysis-gamma.toggleProcessing", "when": "view == filters-gamma", "group": "processing@1" },
+        { "command": "log-analysis-gamma.cancelProcessing", "when": "view == filters-gamma", "group": "processing@2" },
+        { "command": "log-analysis-gamma.addBookmark", "when": "view == filters-gamma.bookmarks", "group": "navigation@1" },
+        { "command": "log-analysis-gamma.previousBookmark", "when": "view == filters-gamma.bookmarks", "group": "navigation@2" },
+        { "command": "log-analysis-gamma.nextBookmark", "when": "view == filters-gamma.bookmarks", "group": "navigation@3" },
+        {
+          "command": "log-analysis-gamma.undoFilterChange",
+          "when": "view == filters-gamma || view == filters-gamma.minus",
+          "group": "navigation@5"
+        },
+        {
+          "command": "log-analysis-gamma.redoFilterChange",
+          "when": "view == filters-gamma || view == filters-gamma.minus",
+          "group": "navigation@6"
+        },
+        {
+          "command": "log-analysis-gamma.searchFilters",
+          "when": "view == filters-gamma || view == filters-gamma.minus",
+          "group": "navigation@3"
+        },
+        {
+          "command": "log-analysis-gamma.clearFilterSearch",
+          "when": "(view == filters-gamma || view == filters-gamma.minus) && logAnalysisGamma.filterSearchActive",
+          "group": "navigation@4"
+        },
+        {
+          "command": "log-analysis-gamma.saveAllFilters",
+          "when": "view == filters-gamma.files",
+          "group": "navigation@4"
+        },
         {
           "command": "log-analysis-gamma.showProjectFilePaths",
           "when": "view == filters-gamma.settings && !config.logAnalysisGamma.showProjectFilePaths",
@@ -421,6 +599,7 @@
     ],
     "views": {
       "filter_gamma_project_setting": [
+        { "id": "filters-gamma.bookmarks", "name": "Bookmarks" },
         {
           "id": "filters-gamma.files",
           "name": "Storage Files"
@@ -451,6 +630,32 @@
     "configuration": {
       "title": "Smart Log Highlighter",
       "properties": {
+        "logAnalysisGamma.timeProfiles": {
+          "type": "object",
+          "default": {},
+          "description": "Time or cycle profiles keyed by original document URI. Configure through Time / Cycle Range."
+        },
+        "logAnalysisGamma.processingTimeoutMs": {
+          "type": "integer",
+          "default": 10000,
+          "minimum": 1000,
+          "maximum": 60000,
+          "description": "Maximum worker processing time per log operation before cancellation."
+        },
+        "logAnalysisGamma.contextBefore": {
+          "type": "integer",
+          "default": 0,
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Lines before each Focus Mode match. Exclusions still apply."
+        },
+        "logAnalysisGamma.contextAfter": {
+          "type": "integer",
+          "default": 0,
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Lines after each Focus Mode match. Exclusions still apply."
+        },
         "logAnalysisGamma.showProjectFilePaths": {
           "type": "boolean",
           "default": false,
@@ -543,6 +748,7 @@
   },
   "devDependencies": {
     "@types/glob": "^7.1.3",
+    "@types/luxon": "^3.4.2",
     "@types/mocha": "^8.0.0",
     "@types/node": "^14.0.27",
     "@types/vscode": "^1.49.0",
@@ -553,5 +759,9 @@
     "mocha": "^10.7.3",
     "typescript": "^4.0.2",
     "vscode-test": "^1.4.0"
+  },
+  "dependencies": {
+    "decimal.js": "^10.6.0",
+    "luxon": "^3.7.2"
   }
 }

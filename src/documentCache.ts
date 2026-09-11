@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { logProcessing } from './processing';
 
 /**
  * Document cache to avoid repeated text splitting and regex processing
@@ -41,6 +42,7 @@ export class DocumentCache {
       const matchingLines: number[] = [];
       
       for (let i = 0; i < lines.length; i++) {
+        regex.lastIndex = 0;
         if (regex.test(lines[i])) {
           matchingLines.push(i);
         }
@@ -50,6 +52,24 @@ export class DocumentCache {
     }
     
     return this.regexResultCache.get(regexKey)!;
+  }
+
+  async getMatchingLinesBatch(regexes: RegExp[]): Promise<number[][]> {
+    if (!this.isValid()) {
+      throw new vscode.CancellationError();
+    }
+    const keys = regexes.map(regex => regex.source + '|' + regex.flags);
+    const missing = regexes.filter((_regex, index) => !this.regexResultCache.has(keys[index]));
+    if (missing.length) {
+      const results = await logProcessing.run<number[][]>('highlight:' + this.document.uri.toString(), 'highlights', {
+        lines: this.getLines(), filters: missing.map((regex, index) => ({ id: String(index), regex: regex.source, flags: regex.flags }))
+      });
+      if (!this.isValid()) {
+        throw new vscode.CancellationError();
+      }
+      results.forEach((matches, index) => this.regexResultCache.set(missing[index].source + '|' + missing[index].flags, matches));
+    }
+    return keys.map(key => this.regexResultCache.get(key)!);
   }
 
   /**

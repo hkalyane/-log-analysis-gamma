@@ -5,10 +5,22 @@ All notable changes to the "log-analysis-gamma" extension will be documented in 
 ## Unreleased
 
 ### Added
+- Context around Focus Mode matches, literal/regex filters from selection, and export/copy with original line numbers.
+- Workspace investigation bookmarks with notes and source-line verification.
+- Colored bookmark glyphs in source and Focus Mode gutters, blue by default, with saved per-bookmark swatches/custom hex colors and safe note hovers on marked lines.
+- Per-document time/cycle profiles for RTL/DMAC `(cycle:65689)`, UVM timestamps, custom numeric clocks, ISO timestamps, and custom full-date formats with explicit timezone handling.
+- Exact cycle/simulation comparisons, timestamp preview and summary, continuation policies, and reset reporting without guessing clock periods or epochs.
+- Worker-based Focus Mode and highlight matching with status, pause/resume, cancellation, deadlines, and stale-result protection.
+- Context-aware filter creation, with an explicit alternate-file action and no destination prompt for single-source creation.
+- Save All Changed Filters, preserving file-specific settings and reporting retryable failures.
+- Non-destructive sidebar search across group names, regex text, and source paths.
+- Bounded, cancellable live regex previews with line counts, sample matches, syntax validation, and worker timeouts.
+- Session undo/redo for 30 filter changes, preserving regex flags and source ownership without automatic file writes.
+- Projects grouped by compact source rows with unsaved/missing-file indicators and optional full paths.
 - Project file paths are hidden by default, with remembered Show/Hide File Paths actions in the Projects toolbar; hover tooltips retain full paths.
 - Storage Files view with full internal/external paths, copy/open/save/reload actions, and an unload X for each external file.
 - Multiple simultaneously loaded settings files, remembered across restarts, with independent filter and exclusion ownership.
-- Destination prompts for new filters, groups, exclusions, and projects; section-specific saves for filters, exclusions, settings, or all content.
+- Destination prompts when creating across multiple sources; section-specific saves for filters, exclusions, settings, or all content.
 - Unsaved-filter indicators and save/discard/cancel protection on file unload and reload.
 - Explicit application of a file's VS Code settings, with the selected settings source restored on restart.
 
@@ -21,7 +33,8 @@ All notable changes to the "log-analysis-gamma" extension will be documented in 
 
 ### Tests
 - Add persistence regressions for internal/shared round-trips, regex flags, legacy files, panel restoration, Focus Mode exclusions, and corrupted files.
-- Expand the suite to 29 tests covering project-path visibility, file-list rows, full-path prompts, cancellation, multi-file save isolation, partial saves, settings restoration, and failed-save protection.
+- Expand the suite to 40 tests covering destination defaults, save-all isolation/retry, search, regex preview lifecycle/timeouts, undo/redo, source grouping, and existing persistence workflows.
+- Add 23 investigation tests for context, selection commands, export protection, cycle/UVM/date parsing, timezone edge cases, profile persistence, bookmarks, and processing controls (63 tests total), including color migration, picker cancellation, source/focus marker placement, hover safety, and decoration cleanup.
 
 ## 1.5.6 - **LATEST RELEASE** 🎯
 

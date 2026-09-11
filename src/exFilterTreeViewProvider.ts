@@ -3,7 +3,13 @@ import { Filter } from "./utils";
 
 //provides filters as tree items to be displayed on the sidebar
 export class ExFilterTreeViewProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
+  private searchQuery = '';
   constructor(private filters: Filter[]) { }
+
+  setSearchQuery(query: string): void {
+    this.searchQuery = query.trim().toLowerCase();
+    this.refresh();
+  }
 
   getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
     return element;
@@ -11,7 +17,8 @@ export class ExFilterTreeViewProvider implements vscode.TreeDataProvider<vscode.
 
   getChildren(element?: vscode.TreeItem): Thenable<vscode.TreeItem[]> {
     if (element === undefined) {
-      return Promise.resolve(this.filters.map(filter => new FilterItem(filter)));
+      return Promise.resolve(this.filters.filter(filter => `${filter.regex} ${filter.sourcePath || ''}`.toLowerCase().includes(this.searchQuery))
+        .map(filter => new FilterItem(filter)));
     } else {
       return Promise.resolve([]);
     }
@@ -21,6 +28,9 @@ export class ExFilterTreeViewProvider implements vscode.TreeDataProvider<vscode.
   readonly onDidChangeTreeData: vscode.Event<vscode.TreeItem | undefined> = this._onDidChangeTreeData.event;
 
   refresh(element?: vscode.TreeItem): void {
+    if (this.searchQuery) {
+      element = undefined;
+    }
     if (element === undefined) {
       console.log("[ex-filter]: refresh all");
     } else {

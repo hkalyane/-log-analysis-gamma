@@ -5,8 +5,26 @@ import { Filter, Group } from "./utils";
 export class FilterTreeViewProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   private groupItemCache: Map<string, GroupItem> = new Map();
   private filterItemCache: Map<string, FilterItem> = new Map();
+  private searchQuery = '';
 
   constructor(private groups: Group[]) { }
+
+  getSearchQuery(): string {
+    return this.searchQuery;
+  }
+
+  setSearchQuery(query: string): void {
+    this.searchQuery = query.trim().toLowerCase();
+    this.refresh();
+  }
+
+  private matchesGroup(group: Group): boolean {
+    return `${group.name} ${group.sourcePath || ''}`.toLowerCase().includes(this.searchQuery);
+  }
+
+  private matchesFilter(filter: Filter): boolean {
+    return filter.regex.toString().toLowerCase().includes(this.searchQuery);
+  }
 
   getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
     return element;
@@ -16,10 +34,13 @@ export class FilterTreeViewProvider implements vscode.TreeDataProvider<vscode.Tr
   //getChildren() returns the root elements (all the filters)
   getChildren(element?: vscode.TreeItem): Thenable<vscode.TreeItem[]> {
     if (element === undefined) {
-      return Promise.resolve(this.groups.map(group => this.getNewGroupItem(group)));
+      return Promise.resolve(this.groups.filter(group => this.matchesGroup(group) || group.filters.some(filter => this.matchesFilter(filter)))
+        .map(group => this.getNewGroupItem(group)));
     }
     if (element instanceof GroupItem) {
-      return Promise.resolve(element.filters.map(filter => this.getNewFilterItem(filter)));
+      const group = this.groups.find(candidate => candidate.id === element.id);
+      return Promise.resolve(group ? group.filters.filter(filter => this.matchesGroup(group) || this.matchesFilter(filter))
+        .map(filter => this.getNewFilterItem(filter)) : []);
     } else {
       return Promise.resolve([]);
     }
@@ -29,6 +50,9 @@ export class FilterTreeViewProvider implements vscode.TreeDataProvider<vscode.Tr
   readonly onDidChangeTreeData: vscode.Event<vscode.TreeItem | undefined> = this._onDidChangeTreeData.event;
 
   refresh(element?: vscode.TreeItem): void {
+    if (this.searchQuery) {
+      element = undefined;
+    }
     if (element === undefined) {
       console.log("[filter]: refresh all");
     } else {
@@ -94,6 +118,7 @@ export class FilterTreeViewProvider implements vscode.TreeDataProvider<vscode.Tr
     } else {
       groupItem.update(group);
     }
+    groupItem.collapsibleState = this.searchQuery ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.Collapsed;
     return groupItem;
   }
 

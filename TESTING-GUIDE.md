@@ -1,5 +1,37 @@
 # Smart Log Highlighter - Testing Guide
 
+## Automated Investigation Tests
+
+Run `npm test` on a machine that can launch the VS Code test host. Compilation and lint run first. The suite includes 63 tests across persistence/productivity and investigation workflows.
+
+Investigation coverage includes:
+- Context overlap, exclusion precedence, and original-line mapping.
+- Literal selection filters, source ownership, undo, and destination cancellation.
+- Numbered focused exports, cancellation, and source-file overwrite protection.
+- RTL/DMAC cycle counts, exact large integers, UVM units and tick scales, continuation lines, and resets.
+- ISO offsets, custom full-date formats, timezone gaps/ambiguities, invalid inputs, and per-document wizard confirmation.
+- Time/context settings round-trips through internal and external files, preserving settings on filter-only saves.
+- Workspace bookmark persistence and stale/ambiguous text anchors.
+- Blue bookmark defaults and legacy migration, color persistence/custom validation/cancellation, safe note hovers, source/focus gutter mapping, recoloring, removal, and resource cleanup.
+- Worker cancellation, pause/resume, superseded jobs, timeout termination, and stale highlight cache rejection.
+
+In a headless Linux container, the VS Code executable still needs its Electron runtime libraries. The test host can use `--ozone-platform=headless --no-sandbox --disable-gpu` and an isolated `--user-data-dir` via `vscode-test.runTests`; no production settings should be used for test runs.
+
+## Bookmark Marker Manual Check
+
+Bookmark a log line with a note. Confirm the blue glyph appears beside the line number (with **Editor: Glyph Margin** enabled), and hover over the marked line's text to read the note. In **Bookmarks**, choose **Change Bookmark Color...**, select a swatch, then try a custom hex color. Confirm the sidebar and gutter agree, editing the note retains the color, and reloading VS Code restores it. Open Focus Mode and verify that only visible bookmarked source lines have markers; removing the bookmark should remove both markers. VS Code does not expose a separate gutter-glyph hover message to extensions.
+
+## RTL / Cycle Manual Check
+
+Open a file containing:
+```text
+[DmacRunSeq          ]|(cycle:65688  )| before
+[DmacRunSeq          ]|(cycle:65689  )| Writing to SYSDMASRCADDRLO=01080012
+continuation detail
+[DmacRunSeq          ]|(cycle:65690  )| after
+```
+Choose **Time / Cycle Range...**, select **Cycle Count (RTL / DMAC)**, keep the preset capture, and set both bounds to `65689`. With inheritance enabled, Focus Mode includes the write and its continuation; with exclusion selected, only the write remains. Verify the timestamp preview says `65689 cycles`, original-line links work, and **Time / Cycle Summary** reports three timestamped lines. Clear the range afterward.
+
 ## Step-by-Step Testing Instructions
 
 ### 1. Open the test log file
