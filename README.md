@@ -7,31 +7,40 @@
 
 ## See It in Action
 
-Recorded in VS Code with the current development build and a synthetic RTL/DMA log. These short demos loop automatically; each has a still-image alternative.
+Recorded in VS Code with the features included in v1.6.0 and a synthetic RTL/DMA log. These short demos loop automatically; each has a still-image alternative.
 
 ### Highlight Logs
 
-![Animated demo toggling regex highlights for register writes, errors, and warnings in the original log](docs/images/demo-highlighting.gif)
+![Animated demo toggling regex highlights for register writes, errors, and warnings in the original log](https://raw.githubusercontent.com/hkalyane/-log-analysis-gamma/main/docs/images/demo-highlighting.gif)
 
-Add regex filters in **Filters+**, then use the paint-can icon to toggle highlighting. Each filter keeps its own color and match count. [View still image](docs/images/demo-highlighting.png).
+Add regex filters in **Filters+**, then use the paint-can icon to toggle highlighting. Each filter keeps its own color and match count. [View still image](https://raw.githubusercontent.com/hkalyane/-log-analysis-gamma/main/docs/images/demo-highlighting.png).
 
 ### Bookmark Important Lines
 
-![Animated demo adding a bookmark note, changing the blue marker to orange, and displaying the note on hover](docs/images/demo-bookmarks.gif)
+![Animated demo adding a bookmark note, changing the blue marker to orange, and displaying the note on hover](https://raw.githubusercontent.com/hkalyane/-log-analysis-gamma/main/docs/images/demo-bookmarks.gif)
 
-Right-click a log line and choose **Bookmark Log Line...**. Add a note, then use **Change Bookmark Color...** in **Bookmarks** to choose a color. Hover over the marked line's text to read the note. [View still image](docs/images/demo-bookmarks.png).
+Right-click a log line and choose **Bookmark Log Line...**. Add a note, then use **Change Bookmark Color...** in **Bookmarks** to choose a color. Hover over the marked line's text to read the note. [View still image](https://raw.githubusercontent.com/hkalyane/-log-analysis-gamma/main/docs/images/demo-bookmarks.png).
 
 ### Filter by Time or Cycle
 
-![Animated demo selecting the RTL cycle profile, entering bounds 65689 through 65691, confirming parsed samples, and opening the ranged result](docs/images/demo-time-range.gif)
+![Animated demo selecting the RTL cycle profile, entering bounds 65689 through 65691, confirming parsed samples, and opening the ranged result](https://raw.githubusercontent.com/hkalyane/-log-analysis-gamma/main/docs/images/demo-time-range.gif)
 
-Run **Time / Cycle Range...**, choose **Cycle Count (RTL / DMAC)**, enter inclusive bounds, and confirm the parsed preview. The demo keeps cycles **65689-65691**; the same wizard also supports UVM simulation time and wall-clock profiles. [View still image](docs/images/demo-time-range.png).
+Run **Time / Cycle Range...**, choose **Cycle Count (RTL / DMAC)**, enter inclusive bounds, and confirm the parsed preview. The demo keeps cycles **65689-65691**; the same wizard also supports UVM simulation time and wall-clock profiles. [View still image](https://raw.githubusercontent.com/hkalyane/-log-analysis-gamma/main/docs/images/demo-time-range.png).
 
 ### Focus on Matching Lines
 
-![Animated before-and-after demo showing the full log followed by only matching lines in Focus Mode, with the bookmark retained](docs/images/demo-focus-mode.gif)
+![Animated before-and-after demo showing the full log followed by only matching lines in Focus Mode, with the bookmark retained](https://raw.githubusercontent.com/hkalyane/-log-analysis-gamma/main/docs/images/demo-focus-mode.gif)
 
-Enable filter visibility, then run **Turn on Focus Mode** or press **Ctrl+H** (**Cmd+H** on macOS). Matching lines retain their colors and bookmarks; filtered lines link back to the original log. [View still image](docs/images/demo-focus-mode.png).
+Enable filter visibility, then run **Turn on Focus Mode** or press **Ctrl+H** (**Cmd+H** on macOS). Matching lines retain their colors and bookmarks; filtered lines link back to the original log. [View still image](https://raw.githubusercontent.com/hkalyane/-log-analysis-gamma/main/docs/images/demo-focus-mode.png).
+
+## What's New in v1.6.0
+
+- Time/cycle ranges for RTL, UVM, and wall-clock logs, with parsed previews and exact simulation counts.
+- Colored bookmarks, note hovers, context lines, selection filters, and focused-result export.
+- Multi-file settings with visible sources, selective saves, Save All, filter search, and undo/redo.
+- Cancellable worker processing, live regex previews, and 63 regression tests.
+
+See [CHANGELOG.md](CHANGELOG.md) for full release notes.
 
 ---
 
@@ -261,7 +270,7 @@ After:  [████████] Minimal Memory (Active Only)
 
 ---
 
-## 🚀 **What's New in v1.5.6 - LATEST RELEASE**
+## 🚀 **Previous Updates - v1.5.6**
 
 ### 💾 **Improved Save Workflow**
 - **✅ Save prompt always shown** — clicking Save now always presents a QuickPick with options:
@@ -612,7 +621,7 @@ This extension is a fork of the original [Log Analysis](https://github.com/SoySa
 
 **🎉 Ready to transform your log analysis workflow? Install Smart Log Highlighter and experience the difference!**
 
-## 🚀 What's New in Gamma v1.5.1 - **LATEST RELEASE**
+## 🚀 Previous Updates - Gamma v1.5.1
 
 ### 🔧 **Configurable File Types for Performance Optimization**
 - **Customizable file extensions** for "Relevant Only" strategy - now you control which files get processed!
@@ -838,7 +847,7 @@ Basic users simply set up and manage filter groups to use for log analysis. The 
 
 The basic operation for log analysis is as follows.
 
-![default_usage](./image/default_usage.gif)
+![default_usage](https://raw.githubusercontent.com/hkalyane/-log-analysis-gamma/main/image/default_usage.gif)
 
 For basic users, log analysis can be performed directly in the `FILTERS+` tab without needing to access the `Smart Log Highlighter` menu. The `FILTERS+` tab, a **NONAME** project is automatically created and used. When saving filters, the project will be saved, and a message confirming the save will appear in the status bar. The tab will display all the necessary filter groups, where users can activate filters or control highlights to focus on log analysis using Focus Mode.
 
@@ -850,7 +859,7 @@ If there are lines in the filtered results that you want to exclude, you can add
 
 This extension creates a tab `FILTERS+` in the explorer sidebar. This tab holds all the filters created and allows for filter management.
 
-![filter](./image/filters.png)
+![filter](https://raw.githubusercontent.com/hkalyane/-log-analysis-gamma/main/image/filters.png)
 
 ##### Group
 
@@ -877,7 +886,7 @@ For each filter, there is one control and four attributes:
 
 This extension also creates a `FILTERS-` tab in the explorer sidebar.
 
-![ex-filter](./image/ex_filters.png)
+![ex-filter](https://raw.githubusercontent.com/hkalyane/-log-analysis-gamma/main/image/ex_filters.png)
 
 In this tab, you can add exclusion filters to remove unnecessary information from the focused filter results during log analysis. For exclusion filters, there are two controls and one attribute:
 
@@ -910,7 +919,7 @@ You can use `log-analysis-gamma.turnOnFocusMode` command to activate focus mode 
 
 In Focus Mode, filtered log lines are now displayed in a read-only virtual document with clickable links. When you click a filtered line, the extension automatically retrieves the original file’s URI and the corresponding line number from an internal mapping. If the original file is already open, the extension focuses on that editor and scrolls directly to the target line; if not, it opens the original file in a new editor at the specified location. This feature streamlines your log analysis by allowing quick navigation between the focused view and the complete log context.
 
-![navigation](./image/navigation.png)
+![navigation](https://raw.githubusercontent.com/hkalyane/-log-analysis-gamma/main/image/navigation.png)
 
 ### Advanced Users
 
@@ -920,7 +929,7 @@ Since logs can be accessed independently of any specific workspace or folder, th
 
 This extension also creates a `Smart Log Highlighter` in the ActivityBar.
 
-![new-project](./image/new_project.gif)
+![new-project](https://raw.githubusercontent.com/hkalyane/-log-analysis-gamma/main/image/new_project.gif)
 
 In the `Smart Log Highlighter` menu, advanced users can add, remove, or select projects, and the selected project's filter configuration will be reflected in the `FILTERS+` tab. After selecting a project, users will be directed to the `FILTERS+` tab, where you can see the project name. From there, users can click the add group icon to create a group, then add necessary filters within the group. To save the configured project, click the project save icon in the `FILTERS+` tab.
 

@@ -2,9 +2,10 @@
 
 All notable changes to the "log-analysis-gamma" extension will be documented in this file.
 
-## Unreleased
+## 1.6.0 - 2026-09-11
 
 ### Added
+- Animated highlighting, bookmark, time/cycle-range, and Focus Mode demos at the top of the README, with public HTTPS assets for Marketplace display.
 - Context around Focus Mode matches, literal/regex filters from selection, and export/copy with original line numbers.
 - Workspace investigation bookmarks with notes and source-line verification.
 - Colored bookmark glyphs in source and Focus Mode gutters, blue by default, with saved per-bookmark swatches/custom hex colors and safe note hovers on marked lines.
@@ -36,7 +37,7 @@ All notable changes to the "log-analysis-gamma" extension will be documented in 
 - Expand the suite to 40 tests covering destination defaults, save-all isolation/retry, search, regex preview lifecycle/timeouts, undo/redo, source grouping, and existing persistence workflows.
 - Add 23 investigation tests for context, selection commands, export protection, cycle/UVM/date parsing, timezone edge cases, profile persistence, bookmarks, and processing controls (63 tests total), including color migration, picker cancellation, source/focus marker placement, hover safety, and decoration cleanup.
 
-## 1.5.6 - **LATEST RELEASE** 🎯
+## 1.5.6 🎯
 
 ### 💾 Improved Save Workflow
 - **NEW**: Save command always shows QuickPick with options: Save to Current Shared File, Save to External Project File, Save to Internal Project

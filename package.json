@@ -8,7 +8,7 @@
     "url": "https://github.com/hkalyane/-log-analysis-gamma.git"
   },
   "icon": "image/icon.png",
-  "version": "1.5.6",
+  "version": "1.6.0",
   "engines": {
     "vscode": "^1.49.0"
   },
