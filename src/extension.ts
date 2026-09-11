@@ -40,6 +40,7 @@ import { FocusProvider } from "./focusProvider";
 import { Project, Group, Filter } from "./utils";
 import { openSettings } from "./settings";
 import { DocumentCacheManager } from "./documentCache";
+import { ProjectSettingsManager } from "./projectSettingsManager";
 
 export type State = {
   inFocusMode: boolean;
@@ -75,7 +76,7 @@ export function applyNoUnderlineDecoration(state: State, editor: vscode.TextEdit
   }
 }
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
   //internal globals
   const projects: Project[] = [];
   const groups: Group[] = [];
@@ -101,6 +102,14 @@ export function activate(context: vscode.ExtensionContext) {
   };
 
   refreshSettings(state);
+
+  const settingsManager = ProjectSettingsManager.getInstance(context);
+  if (settingsManager.getCurrentSettingsPath()) {
+    const settings = await settingsManager.loadProjectSettings();
+    if (settings && await settingsManager.applyProjectSettings(settings, state)) {
+      refreshEditors(state);
+    }
+  }
 
   //tell vs code to open focus-gamma:... uris with state.focusProvider
   const disposableFocus = vscode.workspace.registerTextDocumentContentProvider(

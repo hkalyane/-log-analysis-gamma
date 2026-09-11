@@ -2,6 +2,18 @@
 
 All notable changes to the "log-analysis-gamma" extension will be documented in this file.
 
+## Unreleased
+
+### Fixed
+- Preserve regex source strings and flags in shared project files instead of serializing `RegExp` objects as `{}` (#3).
+- Save exclusion patterns and visibility in both shared files and internal storage, including exclusion-only projects (#4).
+- Restore the selected project, filters, and exclusion panel on startup and refresh, including the last-loaded shared file (#5).
+- Rebuild runtime regexes and icons when loading, retain provider references, and accept legacy `pattern`/`enabled` records.
+- Reject missing or invalid patterns without replacing live filters or automatically overwriting broken internal settings. Previously lost patterns require a backup or manual re-entry.
+
+### Tests
+- Add persistence regressions for internal/shared round-trips, regex flags, legacy files, panel restoration, Focus Mode exclusions, and corrupted files.
+
 ## 1.5.6 - **LATEST RELEASE** 🎯
 
 ### 💾 Improved Save Workflow

@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import type { State } from './extension';
+import { StoredFilter, StoredProject, deserializeFilter, deserializeProject, serializeFilter, serializeProject } from './settings';
 
 export interface ProjectSettings {
     editorSelectionStrategy: 'active' | 'visible' | 'relevant' | 'adaptive';
@@ -9,39 +11,10 @@ export interface ProjectSettings {
     showRandomColorNotifications: boolean;
     maxRememberedColors: number;
     // Internal projects system (from the old vscode_log_analysis.json)
-    projects: Array<{
-        id?: string;
-        name: string;
-        selected?: boolean;
-        groups: Array<{
-            id?: string;
-            name: string;
-            filters: Array<{
-                id: string;
-                name: string;
-                pattern: string;
-                color: string;
-                enabled: boolean;
-                isExclusionFilter?: boolean;
-            }>;
-        }>;
-    }>;
+    projects: StoredProject[];
     // Direct filters (new external system)
-    filters: Array<{
-        id: string;
-        name: string;
-        pattern: string;
-        color: string;
-        enabled: boolean;
-        isExclusionFilter: boolean;
-    }>;
-    exclusionFilters: Array<{
-        id: string;
-        name: string;
-        pattern: string;
-        color: string;
-        enabled: boolean;
-    }>;
+    filters: StoredFilter[];
+    exclusionFilters: StoredFilter[];
 }
 
 export class ProjectSettingsManager {
@@ -120,7 +93,7 @@ export class ProjectSettingsManager {
     /**
      * Save current VS Code settings to project file
      */
-    async saveProjectSettings(filePath?: string, currentState?: any): Promise<boolean> {
+    async saveProjectSettings(filePath?: string, currentState?: Pick<State, 'projects' | 'groups' | 'exFilters'>): Promise<boolean> {
         const targetPath = filePath || this.currentSettingsPath;
         
         if (!targetPath) {
@@ -133,30 +106,11 @@ export class ProjectSettingsManager {
             const config = vscode.workspace.getConfiguration('logAnalysisGamma');
             
             // Convert current filters from state if provided
-            const filters = currentState?.filters?.map((filter: any) => ({
-                id: filter.id,
-                name: filter.name,
-                pattern: filter.pattern,
-                color: filter.color,
-                enabled: filter.enabled,
-                isExclusionFilter: false
-            })) || [];
-
-            const exclusionFilters = currentState?.exFilters?.map((filter: any) => ({
-                id: filter.id,
-                name: filter.name,
-                pattern: filter.pattern,
-                color: filter.color,
-                enabled: filter.enabled
-            })) || [];
+            const filters: StoredFilter[] = [];
+            const exclusionFilters = currentState?.exFilters.map(serializeFilter) || [];
 
             // Convert internal projects if provided
-            const projects = currentState?.projects?.map((project: any) => ({
-                id: project.id,
-                name: project.name,
-                selected: project.selected,
-                groups: project.groups || []
-            })) || [];
+            const projects = currentState?.projects.map(serializeProject) || [];
             
             const projectSettings: ProjectSettings = {
                 editorSelectionStrategy: config.get('editorSelectionStrategy', 'adaptive'),
@@ -193,57 +147,69 @@ export class ProjectSettingsManager {
     /**
      * Apply project settings to current VS Code configuration and state
      */
-    async applyProjectSettings(settings: ProjectSettings, currentState?: any): Promise<void> {
+    async applyProjectSettings(settings: ProjectSettings, currentState?: State): Promise<boolean> {
         try {
+            const projects = (settings.projects || []).map(deserializeProject);
+            const directFilters = settings.filters || [];
+            const exclusions = [...(settings.exclusionFilters || []), ...directFilters.filter(filter => filter.isExclusionFilter)]
+                .map(filter => deserializeFilter(filter, true));
+            const filters = directFilters.filter(filter => !filter.isExclusionFilter)
+                .map(filter => deserializeFilter(filter));
+            if (projects.length === 0) {
+                projects.push(deserializeProject({ name: 'NONAME', groups: [] }));
+            }
+            const selectedProject = projects.find(project => project.selected) || projects[0];
+            projects.forEach(project => project.selected = project === selectedProject);
+            if (filters.length > 0) {
+                selectedProject.groups.push({
+                    id: `${Math.random()}`, name: 'Shared Filters',
+                    isHighlighted: filters.some(filter => filter.isHighlighted),
+                    isShown: filters.some(filter => filter.isShown), filters
+                });
+            }
+
             const config = vscode.workspace.getConfiguration('logAnalysisGamma');
             
             // Apply configuration settings
-            await config.update('editorSelectionStrategy', settings.editorSelectionStrategy, vscode.ConfigurationTarget.Global);
-            await config.update('maxEditorsToProcess', settings.maxEditorsToProcess, vscode.ConfigurationTarget.Global);
-            await config.update('autoDetectLogFiles', settings.autoDetectLogFiles, vscode.ConfigurationTarget.Global);
-            await config.update('showRandomColorNotifications', settings.showRandomColorNotifications, vscode.ConfigurationTarget.Global);
-            await config.update('maxRememberedColors', settings.maxRememberedColors, vscode.ConfigurationTarget.Global);
+            const configurationKeys = ['editorSelectionStrategy', 'maxEditorsToProcess', 'autoDetectLogFiles',
+                'showRandomColorNotifications', 'maxRememberedColors'] as const;
+            for (const key of configurationKeys) {
+                if (settings[key] !== undefined) {
+                    await config.update(key, settings[key], vscode.ConfigurationTarget.Global);
+                }
+            }
 
             // Apply filters to current state if provided
             if (currentState) {
-                // Clear existing filters
-                currentState.filters = [];
-                currentState.exFilters = [];
-                
-                // Add loaded filters
-                if (settings.filters) {
-                    currentState.filters.push(...settings.filters);
-                }
-                
-                if (settings.exclusionFilters) {
-                    currentState.exFilters.push(...settings.exclusionFilters);
-                }
-
-                // Apply projects if provided
-                if (settings.projects && currentState.projects) {
-                    currentState.projects = settings.projects;
-                }
+                currentState.projects.splice(0, currentState.projects.length, ...projects);
+                currentState.groups = selectedProject.groups;
+                currentState.exFilters.splice(0, currentState.exFilters.length, ...exclusions);
+                currentState.projectTreeViewProvider.update(currentState.projects);
+                currentState.filterTreeViewProvider.update(currentState.groups);
+                currentState.exFilterTreeViewProvider.refresh();
+                currentState.focusProvider.update(currentState.groups);
             }
             
             vscode.window.showInformationMessage(`$(check) Applied unified project settings (${settings.projects?.length || 0} projects, ${settings.filters?.length || 0} filters, ${settings.exclusionFilters?.length || 0} exclusions)`);
+            return true;
             
         } catch (error) {
             vscode.window.showErrorMessage(`Failed to apply project settings: ${error}`);
+            return false;
         }
     }
 
     /**
      * Refresh settings from file (manual reload)
      */
-    async refreshProjectSettings(): Promise<void> {
+    async refreshProjectSettings(currentState?: State): Promise<void> {
         if (!this.currentSettingsPath) {
             vscode.window.showWarningMessage('No project settings file to refresh');
             return;
         }
 
         const settings = await this.loadProjectSettings();
-        if (settings) {
-            await this.applyProjectSettings(settings);
+        if (settings && await this.applyProjectSettings(settings, currentState)) {
             vscode.window.showInformationMessage(`$(refresh) Refreshed project settings from: ${path.basename(this.currentSettingsPath)}`);
         }
     }
@@ -358,7 +324,7 @@ export class ProjectSettingsManager {
         const existingSettings = await this.loadProjectSettings();
         if (existingSettings) {
             // Merge projects
-            const mergedProjects = [...(existingSettings.projects || []), ...(currentState.projects || [])];
+            const mergedProjects = [...(existingSettings.projects || []).map(deserializeProject), ...(currentState.projects || [])];
             
             // Update current state with merged data
             const mergedState = {

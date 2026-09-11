@@ -241,7 +241,7 @@ After:  [████████] Minimal Memory (Active Only)
 - **✅ No more silent saves** — users always see where settings are being saved
 
 ### 🔄 **Unified Refresh**
-- **✅ Refresh reloads both internal and shared settings** in one click
+- **✅ Refresh reloads the active settings source**: the loaded shared file, or internal settings when no shared file is loaded
 - **✅ No warning when no shared file is loaded** — internal settings still refresh
 - **✅ Clear feedback message** showing what was refreshed
 
@@ -729,6 +729,12 @@ Your project settings now contain everything in one place:
   "exclusionFilters": [...]
 }
 ```
+
+#### **Saving and Restoring Filters**
+- **Save Project Settings** preserves regex patterns, regex flags, highlight/visibility toggles, the selected project, and exclusion filters. Exclusion-only projects can also be saved internally.
+- Restarting VS Code restores internal settings, then loads the last-used shared file when available. **Refresh Project Settings** reloads the shared file when one is loaded, otherwise internal settings.
+- Saved filters use `regex` (plain pattern text), `flags`, `color`, `isHighlighted`, and `isShown`. Runtime icons and match counts are rebuilt on load. Older files using `pattern` and `enabled` are still accepted.
+- Files affected by earlier save bugs may contain `"regex": {}` or exclusions with no pattern. Those patterns are already lost: restore a backup or re-enter them. Invalid files report an error instead of silently creating unusable filters.
 
 #### **🔄 Easy Migration**
 1. Click **"Import Internal Projects"** in Projects view

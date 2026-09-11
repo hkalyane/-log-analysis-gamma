@@ -708,11 +708,6 @@ export function deleteGroup(treeItem: vscode.TreeItem, state: State) {
 }
 
 export function saveProject(state: State) {
-  if (state.groups.length === 0) {
-    vscode.window.showErrorMessage('There is no filter groups');
-    return;
-  }
-
   const selected = state.projects.find(p => (p.selected === true));
   if (selected === undefined) {
     vscode.window.showErrorMessage('There is no selected project');
@@ -720,7 +715,7 @@ export function saveProject(state: State) {
   }
 
   selected.groups = state.groups;
-  saveSettings(state.globalStorageUri, state.projects);
+  saveSettings(state.globalStorageUri, state.projects, state.exFilters);
 
   setStatusBarMessage(`Project(${selected.name}) is saved.`);
 }
@@ -742,7 +737,7 @@ export function addProject(state: State) {
     };
 
     state.projects.push(project);
-    saveSettings(state.globalStorageUri, state.projects);
+    saveSettings(state.globalStorageUri, state.projects, state.exFilters);
     updateProjectTreeView(state);
   });
 }
@@ -761,7 +756,7 @@ export function editProject(treeItem: vscode.TreeItem, state: State, callback: (
       const findIndex = state.projects.findIndex(project => (project.id === treeItem.id));
       if (findIndex !== -1) {
         state.projects[findIndex].name = name;
-        saveSettings(state.globalStorageUri, state.projects);
+        saveSettings(state.globalStorageUri, state.projects, state.exFilters);
         updateProjectTreeView(state);
 
         callback();
@@ -801,7 +796,7 @@ export function deleteProject(treeItem: vscode.TreeItem, state: State) {
       refreshEditors(state);
     }
     state.projects.splice(deleteIndex, 1);
-    saveSettings(state.globalStorageUri, state.projects);
+    saveSettings(state.globalStorageUri, state.projects, state.exFilters);
     updateProjectTreeView(state);
   }
 }
@@ -822,8 +817,12 @@ function createDefaultProject(state: State) {
 }
 
 export function refreshSettings(state: State) {
-  state.projects = readSettings(state.globalStorageUri);
-  var selectedIndex = -1;
+  try {
+    state.projects = readSettings(state.globalStorageUri, state.exFilters);
+  } catch {
+    return false;
+  }
+  var selectedIndex = getProjectSelectedIndex(state.projects);
 
   // Automatically activate the project if there is only one
   if (state.projects.length === 1) {
@@ -835,7 +834,7 @@ export function refreshSettings(state: State) {
   // - If multiple projects are available but none is selected, an empty project is created and selected.
   if (state.projects.length === 0) {
     createDefaultProject(state);
-    saveSettings(state.globalStorageUri, state.projects);
+    saveSettings(state.globalStorageUri, state.projects, state.exFilters);
     selectedIndex = 0;
   }
 
@@ -850,6 +849,7 @@ export function refreshSettings(state: State) {
   updateProjectTreeView(state);
   updateFilterTreeViewAndFocusProvider(state);
   refreshEditors(state);
+  return true;
 }
 
 export function selectProject(treeItem: vscode.TreeItem, state: State): boolean {
@@ -939,8 +939,7 @@ export async function loadProjectSettings(context: vscode.ExtensionContext, stat
   const fileUri = await vscode.window.showOpenDialog(options);
   if (fileUri && fileUri[0]) {
     const settings = await manager.loadProjectSettings(fileUri[0].fsPath);
-    if (settings) {
-      await manager.applyProjectSettings(settings, state);
+    if (settings && await manager.applyProjectSettings(settings, state)) {
       // Refresh the UI to reflect filter changes
       refreshEditors(state);
     }
@@ -1049,21 +1048,19 @@ export async function refreshProjectSettings(context: vscode.ExtensionContext, s
   const manager = ProjectSettingsManager.getInstance(context);
   const sharedPath = manager.getCurrentSettingsPath();
 
-  // Always reload internal settings
-  refreshSettings(state);
-
-  // Also reload shared file if one is loaded
   if (sharedPath) {
     const settings = await manager.loadProjectSettings();
-    if (settings) {
-      await manager.applyProjectSettings(settings, state);
-      refreshEditors(state);
+    if (!settings || !await manager.applyProjectSettings(settings, state)) {
+      return;
     }
+    refreshEditors(state);
+  } else if (!refreshSettings(state)) {
+    return;
   }
 
   vscode.window.showInformationMessage(
     sharedPath
-      ? `$(refresh) Refreshed internal settings and shared file: ${sharedPath}`
+      ? `$(refresh) Refreshed shared file: ${sharedPath}`
       : `$(refresh) Refreshed internal settings`
   );
 }
