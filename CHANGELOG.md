@@ -2,6 +2,14 @@
 
 All notable changes to the "log-analysis-gamma" extension will be documented in this file.
 
+## 1.6.1 - 2026-09-11
+
+### Documentation
+- Describe the extension as a general text-file filtering tool for logs, source code, configuration, and test output, without domain-specific positioning.
+- Add tested Java class/method regex examples with explicit line-based matching and language-parsing limitations.
+- Add actual Java filtering and internal/external-save GIFs, plus screenshots of performance controls and save destinations/scopes.
+- Explain file-type strategies, per-source saves, global settings application, and how to share external project configurations. Runtime behavior is unchanged.
+
 ## 1.6.0 - 2026-09-11
 
 ### Added

@@ -7,11 +7,19 @@
 
 ## See It in Action
 
-Recorded in VS Code with the features included in v1.6.0 and a synthetic RTL/DMA log. These short demos loop automatically; each has a still-image alternative.
+**For any file VS Code opens as text:** application logs, source code, configuration, test output, and plain text. Use reusable regex filters to highlight matching lines, focus the view, bookmark findings, and share filter settings.
 
-### Highlight Logs
+These real VS Code demos use sample data to illustrate the tools; they do not limit which text formats you can work with. The short demos loop automatically; each has a still-image alternative.
 
-![Animated demo toggling regex highlights for register writes, errors, and warnings in the original log](https://raw.githubusercontent.com/hkalyane/-log-analysis-gamma/main/docs/images/demo-highlighting.gif)
+### Highlight Source Code, Not Just Logs
+
+![Animated Java example showing highlighted class and method declarations plus a TODO, followed by the same matching lines in Focus Mode](https://raw.githubusercontent.com/hkalyane/-log-analysis-gamma/main/docs/images/demo-java-text.gif)
+
+This example uses a Java source file, one internal project for declaration patterns, and an external project for review notes. The same line-based workflow works with other languages and text files. It does not parse or extract entire class/function bodies. [View still image](https://raw.githubusercontent.com/hkalyane/-log-analysis-gamma/main/docs/images/demo-java-text.png).
+
+### Highlight Text and Logs
+
+![Animated demo toggling regex highlights for matching messages, errors, and warnings in a text file](https://raw.githubusercontent.com/hkalyane/-log-analysis-gamma/main/docs/images/demo-highlighting.gif)
 
 Add regex filters in **Filters+**, then use the paint-can icon to toggle highlighting. Each filter keeps its own color and match count. [View still image](https://raw.githubusercontent.com/hkalyane/-log-analysis-gamma/main/docs/images/demo-highlighting.png).
 
@@ -23,9 +31,9 @@ Right-click a log line and choose **Bookmark Log Line...**. Add a note, then use
 
 ### Filter by Time or Cycle
 
-![Animated demo selecting the RTL cycle profile, entering bounds 65689 through 65691, confirming parsed samples, and opening the ranged result](https://raw.githubusercontent.com/hkalyane/-log-analysis-gamma/main/docs/images/demo-time-range.gif)
+![Animated demo selecting a cycle-count profile, entering bounds 65689 through 65691, confirming parsed samples, and opening the ranged result](https://raw.githubusercontent.com/hkalyane/-log-analysis-gamma/main/docs/images/demo-time-range.gif)
 
-Run **Time / Cycle Range...**, choose **Cycle Count (RTL / DMAC)**, enter inclusive bounds, and confirm the parsed preview. The demo keeps cycles **65689-65691**; the same wizard also supports UVM simulation time and wall-clock profiles. [View still image](https://raw.githubusercontent.com/hkalyane/-log-analysis-gamma/main/docs/images/demo-time-range.png).
+Run **Time / Cycle Range...**, choose a profile matching your timestamps or counters, enter inclusive bounds, and confirm the parsed preview. The demo keeps counts **65689-65691**; the same wizard also supports elapsed simulation time and wall-clock profiles. [View still image](https://raw.githubusercontent.com/hkalyane/-log-analysis-gamma/main/docs/images/demo-time-range.png).
 
 ### Focus on Matching Lines
 
@@ -33,9 +41,35 @@ Run **Time / Cycle Range...**, choose **Cycle Count (RTL / DMAC)**, enter inclus
 
 Enable filter visibility, then run **Turn on Focus Mode** or press **Ctrl+H** (**Cmd+H** on macOS). Matching lines retain their colors and bookmarks; filtered lines link back to the original log. [View still image](https://raw.githubusercontent.com/hkalyane/-log-analysis-gamma/main/docs/images/demo-focus-mode.png).
 
-## What's New in v1.6.0
+### Choose Performance Settings
 
-- Time/cycle ranges for RTL, UVM, and wall-clock logs, with parsed previews and exact simulation counts.
+![Actual VS Code performance settings picker showing active, visible, relevant, and adaptive editor strategies](https://raw.githubusercontent.com/hkalyane/-log-analysis-gamma/main/docs/images/demo-performance.png)
+
+Run **Smart Log Highlighter: Performance Settings** from the Command Palette, or use the lightning icon in **Projects**. Choose **Active Only** to work on the current text file. **Visible Only** processes visible split editors; **Adaptive** limits the number of visible editors processed; **Relevant Only** restricts processing to configured file extensions. Add source-file extensions such as `.java` in VS Code settings when using Relevant Only. Percentages in the existing picker are illustrative, not a speed guarantee for your files.
+
+### Save Internal and External Projects
+
+![Animated real workflow selecting internal or external storage and saving filters, exclusions, and settings independently](https://raw.githubusercontent.com/hkalyane/-log-analysis-gamma/main/docs/images/demo-save-projects.gif)
+
+**Projects are saved filter configurations, not copies of your source files.** Saving filters never rewrites the Java file, log, or other text you are analyzing. [View destination choices](https://raw.githubusercontent.com/hkalyane/-log-analysis-gamma/main/docs/images/demo-save-destinations.png).
+
+1. **Internal storage:** use **Internal** in **Storage Files** for local extension-owned configurations. Its row and tooltip show the exact storage path; **Copy Settings File Path** copies it. Create groups and filters in that source, run **Save Project Settings**, and select **Internal Settings**. [Internal save screenshot](https://raw.githubusercontent.com/hkalyane/-log-analysis-gamma/main/docs/images/demo-save-internal.png).
+2. **External storage:** use **Create Empty Settings File** in Storage Files to create a JSON destination, or **Load Shared Filter File** to open existing JSON files. Choose the external file when adding a group/project, or use **Add Filter to Another File...** for a filter. **Save Project Settings** then lists that file by name and full path. [External save screenshot](https://raw.githubusercontent.com/hkalyane/-log-analysis-gamma/main/docs/images/demo-save-projects.png).
+3. Choose what to save: **Filters, Exclusions and Settings**, **Filters Only**, **Exclusion Filters Only**, or **Settings Only**. A file-row save button preselects that destination. Only that source's content is written; this does not copy another source's filters into it.
+4. Share the external JSON with teammates. Load it on another machine and use **Apply Settings from This File** when you also want its editor/performance preferences. Profile paths may need adapting on another machine.
+5. **Save All Changed Filters** saves dirty filter/exclusion data back to each original file, without replacing global settings. Unsaved files show `*`; unload/reload offers save, discard, or cancel. The X unloads an external file without deleting it.
+
+Both internal and loaded external configurations are remembered across restarts. You can keep several files loaded and switch the selected project independently inside each source.
+
+## What's New in v1.6.1
+
+- Clear general-purpose text/source-code guidance, including tested Java declaration patterns and their limitations.
+- New real Java and internal/external-save GIFs, plus performance and save-dialog screenshots.
+- Generic documentation examples instead of domain-specific product positioning. Extension behavior is unchanged from v1.6.0.
+
+### Features Included Since v1.6.0
+
+- Time/cycle ranges for numeric counters, elapsed time, and wall-clock logs, with parsed previews and exact simulation counts.
 - Colored bookmarks, note hovers, context lines, selection filters, and focused-result export.
 - Multi-file settings with visible sources, selective saves, Save All, filter search, and undo/redo.
 - Cancellable worker processing, live regex previews, and 63 regression tests.
@@ -44,9 +78,43 @@ See [CHANGELOG.md](CHANGELOG.md) for full release notes.
 
 ---
 
-**🎯 Professional log analysis with intelligent filtering, focus mode, and enterprise team collaboration!**
+**Highlight, filter, and investigate text files with reusable, shareable patterns.**
 
-Transform your log analysis workflow with intelligent filters, customizable performance optimization, and seamless team sharing. Perfect for debugging, monitoring, and analyzing large log files with up to **90% performance improvement**.
+Use the same workflow for application logs, Java or other source files, configuration files, build output, and plain text. Editor-selection strategies let you control which open documents are processed. Performance depends on file size, regex complexity, and the number of editors; this is not a streaming viewer for arbitrarily large files.
+
+## Work with Any Text File
+
+Open a `.java`, `.js`, `.ts`, `.py`, `.c`, `.cpp`, `.json`, `.xml`, `.yaml`, `.txt`, `.log`, or another file in VS Code's text editor. Choose **Performance Settings > Active Only** for the current document, or **Visible Only** for visible split editors. **Relevant Only** restricts processing to configured extensions (log-oriented by default); add `.java` or other extensions under `logAnalysisGamma.relevantFileExtensions` when using that strategy.
+
+1. Add a group in **Filters+**, then add a regex pattern or right-click selected text and choose **Highlight This Text**.
+2. Use the paint-can control for highlighting and the eye control to include matching lines in Focus Mode. Exclusion filters remove unwanted matches.
+3. Open Focus Mode to scan matching lines, add context if needed, and navigate back to the original file. The original text is never rewritten by filtering.
+
+### Java Classes and Methods
+
+Example patterns for conventional single-line Java declarations:
+
+Classes, interfaces, enums, and records:
+```regex
+\b(class|interface|enum|record)\s+[A-Za-z_$][\w$]*
+```
+
+Public methods with a return type:
+```regex
+^\s*public\s+(?:static\s+)?[\w<>\[\], ?]+\s+[A-Za-z_$][\w$]*\s*\([^;]*\)\s*(?:throws\s+[\w., ]+)?\s*\{
+```
+
+Annotations:
+```regex
+^\s*@[A-Za-z_$][\w$.]*
+```
+
+TODO and FIXME notes:
+```regex
+\b(TODO|FIXME)\b
+```
+
+These are text patterns, not Java syntax analysis: they can match comments or strings, miss multiline declarations or constructors, and do not extract entire class/method bodies. Add context lines for nearby code or use VS Code's language Outline for semantic navigation. Other languages work the same way with patterns appropriate to their text. Binary files, images, and rendered PDF content are not supported as text input. Time-range filtering is optional and only useful when the file contains a timestamp or counter.
 
 ---
 
@@ -805,19 +873,19 @@ Your project settings now contain everything in one place:
 #### **Time and Cycle Profiles**
 Use **Time / Cycle Range...** from the editor context menu or Command Palette with the source log active. Profiles are scoped to the original document URI, so unrelated logs can use different clocks. The wizard previews up to the first 5,000 lines or 1,000,000 characters before Apply. Full processing uses the complete document. **Time / Cycle Summary** reports first/last/minimum/maximum parsed values, invalid and untimestamped lines, sample conversions, and backward jumps. The status bar shows the active range; **Clear Time / Cycle Range** removes it for that document.
 
-For this RTL/DMAC log:
+For a text file with a numeric counter:
 ```text
-[DmacRunSeq          ]|(cycle:65689  )| Writing to SYDMASRCADDRLO=0080012
+[Worker] |(cycle:65689)| INFO Processing item 42
 ```
-1. Choose **Cycle Count (RTL / DMAC)**.
+1. Choose the **Cycle Count** profile in **Time / Cycle Range...**.
 2. Keep the capture pattern `\(\s*cycle\s*:\s*(\d+)\s*\)`.
 3. Enter inclusive cycle bounds, for example `65000` through `66000`.
 4. Choose whether untimestamped continuation lines inherit the preceding timestamp or are excluded.
 5. Confirm the preview showing `65689 cycles`, then turn on Focus Mode. A time range can work alone without a regular filter.
 
 Clock types are explicit:
-- **Cycles** are non-negative whole counts, compared exactly even beyond JavaScript's safe integer limit. Register addresses are not treated as time. No clock period is guessed. For conversion using a known period, choose the simulation profile, replace its capture pattern with the cycle pattern, choose the physical unit, and set the duration of one unitless tick.
-- **UVM / simulation time** uses `@` timestamps by default, for example `UVM_INFO @ 1250 ns:` or `UVM_INFO @ 1250:`. Capture group 1 is the number; optional group 2 is a unit. Supported units are `fs`, `ps`, `ns`, `us`, `ms`, and `s`. Explicit units are normalized exactly; unitless values use the chosen unit and scale. A tick of `10 ns` is configured as unit `ns`, scale `10`. Bounds with units such as `1.25 us` override the unitless scale.
+- **Cycles** are non-negative whole counts, compared exactly even beyond JavaScript's safe integer limit. Unrelated numbers are not treated as time. No clock period is guessed. For conversion using a known period, choose the simulation profile, replace its capture pattern with the cycle pattern, choose the physical unit, and set the duration of one unitless tick.
+- **Simulation / elapsed time** uses `@` timestamps by default, for example `INFO @ 1250 ns:` or `INFO @ 1250:`. Capture group 1 is the number; optional group 2 is a unit. Supported units are `fs`, `ps`, `ns`, `us`, `ms`, and `s`. Explicit units are normalized exactly; unitless values use the chosen unit and scale. A tick of `10 ns` is configured as unit `ns`, scale `10`. Bounds with units such as `1.25 us` override the unitless scale.
 - **Wall-clock timestamps** support full ISO dates with UTC offsets, or custom Luxon date-format tokens and an explicit UTC/IANA timezone (for example `yyyy-MM-dd HH:mm:ss.SSS` and `Asia/Kolkata`). Invalid dates, timezone gaps, ambiguous daylight-saving times without offsets, and fractions finer than milliseconds are rejected. Time-only wall-clock strings cannot supply an unknown date; use a numeric elapsed-time profile or provide a full date.
 - All preset capture patterns are editable for other log formats and specific clock domains. Group 1 must capture only the desired clock value. Numeric captures and scales support up to 80 decimal digits; scientific notation is not supported. An unmatched line can inherit its preceding timestamp, but malformed matching timestamps break inheritance; preamble lines without a preceding timestamp are excluded.
 - Bounds are inclusive. If shown regular filters exist, both regex and time conditions must match. Exclusions win, including on context lines. Counter resets and backward timestamps are reported, not sorted or assigned invented epochs: every event whose local value falls in the range is eligible, including events in repeated runs. Narrow the input or capture pattern when one file mixes clocks or simulation runs.
