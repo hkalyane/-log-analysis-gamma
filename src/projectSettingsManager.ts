@@ -2,9 +2,46 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import type { State } from './extension';
-import { StoredFilter, StoredProject, deserializeFilter, deserializeProject, serializeFilter, serializeProject } from './settings';
+import { StoredFilter, StoredProject, deserializeFilter, deserializeProject, getSettingFile, saveSettings, serializeFilter, serializeProject } from './settings';
+import { Filter, Group, Project } from './utils';
+
+export type SaveSection = 'all' | 'filters' | 'exclusions' | 'settings';
+export type StorageFile = { path: string; internal: boolean; loaded: boolean; dirty: boolean; error?: string };
+const configurationKeys = ['editorSelectionStrategy', 'maxEditorsToProcess', 'autoDetectLogFiles',
+    'showRandomColorNotifications', 'maxRememberedColors', 'relevantFileExtensions', 'userColors'] as const;
+
+function decodeSettings(settings: ProjectSettings): { projects: Project[]; exclusions: Filter[] } {
+    if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
+        throw new Error('Expected a project settings object');
+    }
+    for (const key of ['projects', 'filters', 'exclusionFilters'] as const) {
+        if (settings[key] !== undefined && !Array.isArray(settings[key])) {
+            throw new Error(`Expected an array for ${key}`);
+        }
+    }
+    const projects = (settings.projects || []).map(deserializeProject);
+    const directFilters = settings.filters || [];
+    const exclusions = [...(settings.exclusionFilters || []), ...directFilters.filter(filter => filter.isExclusionFilter)]
+        .map(filter => deserializeFilter(filter, true));
+    const filters = directFilters.filter(filter => !filter.isExclusionFilter).map(filter => deserializeFilter(filter));
+    if (projects.length === 0) {
+        projects.push(deserializeProject({ name: 'NONAME', groups: [] }));
+    }
+    const selectedProject = projects.find(project => project.selected) || projects[0];
+    projects.forEach(project => project.selected = project === selectedProject);
+    if (filters.length > 0) {
+        selectedProject.groups.push({
+            id: `${Math.random()}`, name: 'Shared Filters',
+            isHighlighted: filters.some(filter => filter.isHighlighted),
+            isShown: filters.some(filter => filter.isShown), filters
+        });
+    }
+    return { projects, exclusions };
+}
 
 export interface ProjectSettings {
+    relevantFileExtensions?: string[];
+    userColors?: string[];
     editorSelectionStrategy: 'active' | 'visible' | 'relevant' | 'adaptive';
     maxEditorsToProcess: number;
     autoDetectLogFiles: boolean;
@@ -20,12 +57,23 @@ export interface ProjectSettings {
 export class ProjectSettingsManager {
     private static instance: ProjectSettingsManager;
     private currentSettingsPath: string | undefined;
+    private loadedSettingsPaths: string[];
     private context: vscode.ExtensionContext;
+    private sources = new Map<string, { projects: StoredProject[]; exclusions: StoredFilter[] }>();
+    private fileErrors = new Map<string, string>();
+    private fileChangeEmitter = new vscode.EventEmitter<void>();
+    readonly onDidChangeFiles = this.fileChangeEmitter.event;
 
     constructor(context: vscode.ExtensionContext) {
         this.context = context;
         // Restore last used settings path
         this.currentSettingsPath = context.globalState.get('lastProjectSettingsPath');
+        const remembered = context.globalState.get<string[]>('loadedProjectSettingsPaths');
+        this.loadedSettingsPaths = [...new Set((remembered || (this.currentSettingsPath ? [this.currentSettingsPath] : []))
+            .map(filePath => path.resolve(filePath)))];
+        const lastPath = this.currentSettingsPath ? path.resolve(this.currentSettingsPath) : undefined;
+        this.currentSettingsPath = lastPath && this.loadedSettingsPaths.includes(lastPath)
+            ? lastPath : this.loadedSettingsPaths[this.loadedSettingsPaths.length - 1];
     }
 
     static getInstance(context?: vscode.ExtensionContext): ProjectSettingsManager {
@@ -42,20 +90,223 @@ export class ProjectSettingsManager {
         return this.currentSettingsPath;
     }
 
+    getLoadedSettingsPaths(): string[] {
+        return [...this.loadedSettingsPaths];
+    }
+
+    getFiles(state: State): StorageFile[] {
+        const paths = [...new Set([getSettingFile(state.globalStorageUri), ...this.loadedSettingsPaths])];
+        return paths.map(filePath => ({
+            path: filePath, internal: filePath === getSettingFile(state.globalStorageUri),
+            loaded: this.sources.has(filePath), dirty: this.isDirty(filePath, state),
+            error: this.fileErrors.get(filePath)
+        }));
+    }
+
+    refreshFiles(): void {
+        this.fileChangeEmitter.fire();
+    }
+
+    private fileContent(filePath: string, state: State) {
+        return {
+            projects: state.projects.filter(project => project.sourcePath === filePath).map(serializeProject),
+            exclusions: state.exFilters.filter(filter => filter.sourcePath === filePath).map(serializeFilter)
+        };
+    }
+
+    isDirty(filePath: string, state: State): boolean {
+        const saved = this.sources.get(filePath);
+        return saved !== undefined && JSON.stringify(saved) !== JSON.stringify(this.fileContent(filePath, state));
+    }
+
+    async initializeFiles(state: State): Promise<void> {
+        state.settingsManager = this;
+        const internalPath = getSettingFile(state.globalStorageUri);
+        if (!fs.existsSync(internalPath)) {
+            saveSettings(state.globalStorageUri, [], []);
+        }
+        await this.loadFile(internalPath, state, true);
+        for (const filePath of this.getLoadedSettingsPaths()) {
+            if (filePath !== internalPath) {
+                await this.loadFile(filePath, state);
+            }
+        }
+        const configurationPath = this.context.globalState.get<string>('configurationProjectSettingsPath');
+        if (configurationPath && configurationPath !== internalPath && this.sources.has(configurationPath)) {
+            await this.applyFileConfiguration(configurationPath);
+        }
+    }
+
+    async loadFile(filePath: string, state: State, applyConfiguration = false): Promise<boolean> {
+        const targetPath = path.resolve(filePath);
+        try {
+            const settings: ProjectSettings = JSON.parse(fs.readFileSync(targetPath, 'utf8'));
+            const { projects, exclusions } = decodeSettings(settings);
+            if (applyConfiguration) {
+                await this.applyConfiguration(settings);
+            }
+            for (const project of projects) {
+                project.sourcePath = targetPath;
+                project.id = `${Math.random()}`;
+                for (const group of project.groups) {
+                    group.sourcePath = targetPath;
+                    group.id = `${Math.random()}`;
+                    for (const filter of group.filters) {
+                        filter.sourcePath = targetPath;
+                        filter.id = `${Math.random()}`;
+                    }
+                }
+            }
+            exclusions.forEach(filter => { filter.sourcePath = targetPath; filter.id = `${Math.random()}`; });
+            state.projects.splice(0, state.projects.length,
+                ...state.projects.filter(project => project.sourcePath !== targetPath), ...projects);
+            state.exFilters.splice(0, state.exFilters.length,
+                ...state.exFilters.filter(filter => filter.sourcePath !== targetPath), ...exclusions);
+            this.sources.set(targetPath, this.fileContent(targetPath, state));
+            this.fileErrors.delete(targetPath);
+            if (targetPath !== getSettingFile(state.globalStorageUri)) {
+                await this.setSettingsPath(targetPath);
+            }
+            this.updateState(state);
+            return true;
+        } catch (error) {
+            this.fileErrors.set(targetPath, String(error));
+            this.refreshFiles();
+            vscode.window.showErrorMessage(`Could not load ${targetPath}: ${error}`);
+            return false;
+        }
+    }
+
+    updateState(state: State): void {
+        state.groups = state.projects.filter(project => project.selected)
+            .reduce<Group[]>((groups, project) => groups.concat(project.groups), []);
+        state.projectTreeViewProvider.update(state.projects);
+        state.filterTreeViewProvider.update(state.groups);
+        state.exFilterTreeViewProvider.refresh();
+        state.focusProvider.update(state.groups);
+        this.refreshFiles();
+    }
+
+    selectedProject(filePath: string, state: State): Project {
+        const project = state.projects.find(candidate => candidate.sourcePath === filePath && candidate.selected);
+        if (!project) {
+            throw new Error(`No selected project for ${filePath}`);
+        }
+        return project;
+    }
+
+    async unloadFile(filePath: string, state: State): Promise<void> {
+        const targetPath = path.resolve(filePath);
+        if (targetPath === getSettingFile(state.globalStorageUri)) {
+            return;
+        }
+        state.projects.splice(0, state.projects.length, ...state.projects.filter(project => project.sourcePath !== targetPath));
+        state.exFilters.splice(0, state.exFilters.length, ...state.exFilters.filter(filter => filter.sourcePath !== targetPath));
+        this.sources.delete(targetPath);
+        this.fileErrors.delete(targetPath);
+        await this.clearSettingsPath(targetPath);
+        this.updateState(state);
+    }
+
+    async saveFile(filePath: string, state: State, section: SaveSection = 'all'): Promise<boolean> {
+        const targetPath = path.resolve(filePath);
+        try {
+            const saved = this.sources.get(targetPath);
+            if (!saved) {
+                throw new Error('Load this file successfully before saving to it');
+            }
+            const settings: ProjectSettings = JSON.parse(fs.readFileSync(targetPath, 'utf8'));
+            decodeSettings(settings);
+            const current = this.fileContent(targetPath, state);
+            const nextSaved = { ...saved };
+            if (section === 'all' || section === 'filters') {
+                settings.projects = current.projects;
+                settings.filters = (settings.filters || []).filter(filter => filter.isExclusionFilter);
+                nextSaved.projects = current.projects;
+            }
+            if (section === 'all' || section === 'exclusions') {
+                settings.exclusionFilters = current.exclusions;
+                settings.filters = (settings.filters || []).filter(filter => !filter.isExclusionFilter);
+                nextSaved.exclusions = current.exclusions;
+            }
+            if (section === 'all' || section === 'settings') {
+                Object.assign(settings, this.currentConfiguration());
+            }
+            fs.writeFileSync(targetPath, JSON.stringify(settings, null, 2), 'utf8');
+            this.sources.set(targetPath, nextSaved);
+            this.fileErrors.delete(targetPath);
+            this.refreshFiles();
+            vscode.window.showInformationMessage(`Saved ${section} to ${targetPath}`);
+            return true;
+        } catch (error) {
+            vscode.window.showErrorMessage(`Could not save ${targetPath}: ${error}`);
+            return false;
+        }
+    }
+
+    async createFile(filePath: string, state: State): Promise<boolean> {
+        try {
+            const settings = { ...this.currentConfiguration(), projects: [], filters: [], exclusionFilters: [] };
+            fs.writeFileSync(filePath, JSON.stringify(settings, null, 2), { encoding: 'utf8', flag: 'wx' });
+            return await this.loadFile(filePath, state);
+        } catch (error) {
+            vscode.window.showErrorMessage(`Could not create ${filePath}: ${error}`);
+            return false;
+        }
+    }
+
+    async applyFileConfiguration(filePath: string): Promise<boolean> {
+        try {
+            const settings: ProjectSettings = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+            decodeSettings(settings);
+            await this.applyConfiguration(settings);
+            await this.context.globalState.update('configurationProjectSettingsPath', path.resolve(filePath));
+            return true;
+        } catch (error) {
+            vscode.window.showErrorMessage(`Could not apply settings from ${filePath}: ${error}`);
+            return false;
+        }
+    }
+
+    private currentConfiguration(): Record<string, unknown> {
+        const config = vscode.workspace.getConfiguration('logAnalysisGamma');
+        const settings: Record<string, unknown> = {};
+        configurationKeys.forEach(key => settings[key] = config.get(key));
+        return settings;
+    }
+
+    private async applyConfiguration(settings: ProjectSettings): Promise<void> {
+        const config = vscode.workspace.getConfiguration('logAnalysisGamma');
+        for (const key of configurationKeys) {
+            if (settings[key] !== undefined) {
+                await config.update(key, settings[key], vscode.ConfigurationTarget.Global);
+            }
+        }
+    }
+
     /**
      * Set and remember the project settings file path
      */
     async setSettingsPath(filePath: string): Promise<void> {
-        this.currentSettingsPath = filePath;
-        await this.context.globalState.update('lastProjectSettingsPath', filePath);
+        const normalized = path.resolve(filePath);
+        if (!this.loadedSettingsPaths.includes(normalized)) {
+            this.loadedSettingsPaths.push(normalized);
+        }
+        this.currentSettingsPath = normalized;
+        await this.context.globalState.update('loadedProjectSettingsPaths', this.loadedSettingsPaths);
+        await this.context.globalState.update('lastProjectSettingsPath', normalized);
     }
 
     /**
      * Clear the remembered project settings file path
      */
-    async clearSettingsPath(): Promise<void> {
-        this.currentSettingsPath = undefined;
-        await this.context.globalState.update('lastProjectSettingsPath', undefined);
+    async clearSettingsPath(filePath?: string): Promise<void> {
+        this.loadedSettingsPaths = filePath
+            ? this.loadedSettingsPaths.filter(loadedPath => loadedPath !== path.resolve(filePath))
+            : [];
+        this.currentSettingsPath = this.loadedSettingsPaths[this.loadedSettingsPaths.length - 1];
+        await this.context.globalState.update('loadedProjectSettingsPaths', this.loadedSettingsPaths);
+        await this.context.globalState.update('lastProjectSettingsPath', this.currentSettingsPath);
     }
 
     /**
@@ -149,35 +400,11 @@ export class ProjectSettingsManager {
      */
     async applyProjectSettings(settings: ProjectSettings, currentState?: State): Promise<boolean> {
         try {
-            const projects = (settings.projects || []).map(deserializeProject);
-            const directFilters = settings.filters || [];
-            const exclusions = [...(settings.exclusionFilters || []), ...directFilters.filter(filter => filter.isExclusionFilter)]
-                .map(filter => deserializeFilter(filter, true));
-            const filters = directFilters.filter(filter => !filter.isExclusionFilter)
-                .map(filter => deserializeFilter(filter));
-            if (projects.length === 0) {
-                projects.push(deserializeProject({ name: 'NONAME', groups: [] }));
-            }
-            const selectedProject = projects.find(project => project.selected) || projects[0];
-            projects.forEach(project => project.selected = project === selectedProject);
-            if (filters.length > 0) {
-                selectedProject.groups.push({
-                    id: `${Math.random()}`, name: 'Shared Filters',
-                    isHighlighted: filters.some(filter => filter.isHighlighted),
-                    isShown: filters.some(filter => filter.isShown), filters
-                });
-            }
-
-            const config = vscode.workspace.getConfiguration('logAnalysisGamma');
+            const { projects, exclusions } = decodeSettings(settings);
+            const selectedProject = projects.find(project => project.selected)!;
             
             // Apply configuration settings
-            const configurationKeys = ['editorSelectionStrategy', 'maxEditorsToProcess', 'autoDetectLogFiles',
-                'showRandomColorNotifications', 'maxRememberedColors'] as const;
-            for (const key of configurationKeys) {
-                if (settings[key] !== undefined) {
-                    await config.update(key, settings[key], vscode.ConfigurationTarget.Global);
-                }
-            }
+            await this.applyConfiguration(settings);
 
             // Apply filters to current state if provided
             if (currentState) {

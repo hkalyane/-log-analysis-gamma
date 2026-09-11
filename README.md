@@ -732,9 +732,20 @@ Your project settings now contain everything in one place:
 
 #### **Saving and Restoring Filters**
 - **Save Project Settings** preserves regex patterns, regex flags, highlight/visibility toggles, the selected project, and exclusion filters. Exclusion-only projects can also be saved internally.
-- Restarting VS Code restores internal settings, then loads the last-used shared file when available. **Refresh Project Settings** reloads the shared file when one is loaded, otherwise internal settings.
+- Restarting VS Code restores internal storage and all remembered external files. **Refresh Project Settings** reloads these files, with a save/discard/cancel prompt for unsaved filter changes.
 - Saved filters use `regex` (plain pattern text), `flags`, `color`, `isHighlighted`, and `isShown`. Runtime icons and match counts are rebuilt on load. Older files using `pattern` and `enabled` are still accepted.
 - Files affected by earlier save bugs may contain `"regex": {}` or exclusions with no pattern. Those patterns are already lost: restore a backup or re-enter them. Invalid files report an error instead of silently creating unusable filters.
+
+#### **Storage Files and Multiple Sources**
+- Project file paths are hidden beside project names by default. Use the eye button in the **Projects** toolbar to **Show Project File Paths** or **Hide Project File Paths**. The preference is remembered, and full paths remain available on hover. The **Storage Files** view continues to show full paths.
+- The **Storage Files** view lists the exact internal storage path and every loaded external file. Full paths appear beside each entry and in its tooltip; use **Copy Settings File Path** from the context menu to copy one.
+- **Load Shared Filter File** accepts multiple JSON files. Each file's selected project contributes groups to **Filters+**, and exclusions from all loaded files participate in Focus Mode. Switching projects affects only that file. Projects and filter tooltips identify their source path.
+- Use the **X** beside an external file to unload only that file. It does not delete the file. Unsaved filter changes offer **Save and Unload**, **Discard and Unload**, or **Cancel**; a failed save keeps the file loaded. Internal storage remains available.
+- New groups, filters, exclusions, and projects prompt for their destination file. Adding a regular filter to a different source uses a matching group name in that file, creating the group if needed. Changes stay in memory until saved; an asterisk marks files with unsaved filter changes.
+- **Save Project Settings** first asks for a destination, showing each full path, then offers **Filters, Exclusions and Settings**, **Filters Only**, **Exclusion Filters Only**, or **Settings Only**. A row's save button selects that row as the destination. Only content belonging to that file is saved; other loaded files and unselected sections are unchanged.
+- **Create Empty Settings File** creates and loads a new destination without overwriting an existing file. Load or create a destination before assigning new filters to it.
+- Loading external filters does not change global VS Code settings. Use **Apply Settings from This File** in the file's context menu to select its settings explicitly. The chosen settings source is remembered for restart. Saved settings include the editor strategy/limits, log detection, relevant file extensions, color memory, and notification preferences.
+- Missing or invalid remembered files remain visible with a warning and can be reloaded or unloaded. Failed loads leave working filters untouched.
 
 #### **🔄 Easy Migration**
 1. Click **"Import Internal Projects"** in Projects view

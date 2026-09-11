@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 
 // One filter corresponds to one line in the configuration file
 export type Filter = {
+  sourcePath?: string;
   isHighlighted: boolean; // if the matching lines will be highlighted
   isShown: boolean; //if the matching lines will be kept in focus mode
   regex: RegExp;
@@ -12,6 +13,7 @@ export type Filter = {
 };
 
 export type Group = {
+  sourcePath?: string;
   filters: Filter[];
   isHighlighted: boolean; // if the matching lines will be highlighted
   isShown: boolean; //if the matching lines will be kept in focus mode
@@ -20,6 +22,7 @@ export type Group = {
 };
 
 export type Project = {
+  sourcePath?: string;
   groups: Group[];
   name: string;
   id: string;

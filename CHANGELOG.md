@@ -4,6 +4,14 @@ All notable changes to the "log-analysis-gamma" extension will be documented in 
 
 ## Unreleased
 
+### Added
+- Project file paths are hidden by default, with remembered Show/Hide File Paths actions in the Projects toolbar; hover tooltips retain full paths.
+- Storage Files view with full internal/external paths, copy/open/save/reload actions, and an unload X for each external file.
+- Multiple simultaneously loaded settings files, remembered across restarts, with independent filter and exclusion ownership.
+- Destination prompts for new filters, groups, exclusions, and projects; section-specific saves for filters, exclusions, settings, or all content.
+- Unsaved-filter indicators and save/discard/cancel protection on file unload and reload.
+- Explicit application of a file's VS Code settings, with the selected settings source restored on restart.
+
 ### Fixed
 - Preserve regex source strings and flags in shared project files instead of serializing `RegExp` objects as `{}` (#3).
 - Save exclusion patterns and visibility in both shared files and internal storage, including exclusion-only projects (#4).
@@ -13,6 +21,7 @@ All notable changes to the "log-analysis-gamma" extension will be documented in 
 
 ### Tests
 - Add persistence regressions for internal/shared round-trips, regex flags, legacy files, panel restoration, Focus Mode exclusions, and corrupted files.
+- Expand the suite to 29 tests covering project-path visibility, file-list rows, full-path prompts, cancellation, multi-file save isolation, partial saves, settings restoration, and failed-save protection.
 
 ## 1.5.6 - **LATEST RELEASE** 🎯
 

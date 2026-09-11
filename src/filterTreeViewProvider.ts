@@ -122,6 +122,7 @@ export class GroupItem extends vscode.TreeItem {
     this.label = group.name;
     this.id = group.id;
     this.filters = group.filters;
+    this.tooltip = group.sourcePath ? `${group.name}\n${group.sourcePath}` : group.name;
 
     if (group.isHighlighted) {
       if (group.isShown) {
@@ -164,6 +165,7 @@ export class FilterItem extends vscode.TreeItem {
     this.label = filter.regex.toString();
     this.id = filter.id;
     this.iconPath = filter.iconPath;
+    this.tooltip = filter.sourcePath ? `${filter.regex}\n${filter.sourcePath}` : filter.regex.toString();
 
     if (filter.isHighlighted) {
       if (filter.isShown) {

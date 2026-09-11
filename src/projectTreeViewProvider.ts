@@ -10,7 +10,8 @@ export class ProjectTreeViewProvider implements vscode.TreeDataProvider<vscode.T
 
   getChildren(element?: vscode.TreeItem): Thenable<vscode.TreeItem[]> {
     if (element === undefined) {
-      return Promise.resolve(this.projects.map(project => new ProjectItem(project)));
+      const showPaths = vscode.workspace.getConfiguration('logAnalysisGamma').get<boolean>('showProjectFilePaths', false);
+      return Promise.resolve(this.projects.map(project => new ProjectItem(project, showPaths)));
     } else {
       return Promise.resolve([]);
     }
@@ -37,10 +38,12 @@ export class ProjectTreeViewProvider implements vscode.TreeDataProvider<vscode.T
 export class ProjectItem extends vscode.TreeItem {
   public project: Project;
   
-  constructor(project: Project) {
+  constructor(project: Project, showPaths = false) {
     super(project.name, vscode.TreeItemCollapsibleState.None);
     this.id = project.id;
     this.project = project;
+    this.description = showPaths ? project.sourcePath : undefined;
+    this.tooltip = project.sourcePath ? `${project.name}\n${project.sourcePath}` : project.name;
     this.command = {
       command: 'log-analysis-gamma.selectProject',
       title: 'Select Project',

@@ -53,6 +53,7 @@ export class FilterItem extends vscode.TreeItem {
   update(filter: Filter) {
     this.label = filter.regex.toString();
     this.id = filter.id;
+    this.tooltip = filter.sourcePath ? `${filter.regex}\n${filter.sourcePath}` : filter.regex.toString();
 
     if (filter.isShown) {
       this.description = ` · ${filter.count}`;

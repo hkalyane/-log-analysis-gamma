@@ -6,7 +6,7 @@ import { readSettings, saveSettings } from "./settings";
 import { DocumentCacheManager } from "./documentCache";
 import { PerformanceUtils } from "./performanceUtils";
 import { EditorManager, EditorSelectionStrategy } from "./editorManager";
-import { ProjectSettingsManager } from "./projectSettingsManager";
+import { ProjectSettingsManager, SaveSection } from "./projectSettingsManager";
 
 function hasHighlightedFilter(state: State): boolean {
   let hasHighlighted: boolean = false;
@@ -520,36 +520,59 @@ export function configureRelevantFileTypes() {
   quickPick.show();
 }
 
-export function addFilter(treeItem: vscode.TreeItem, state: State) {
-  vscode.window
-    .showInputBox({
-      prompt: "[FILTER] Type a regex to filter",
-      ignoreFocusOut: false,
-    })
-    .then((regexStr) => {
-      if (regexStr === undefined) {
-        return;
-      }
-      const group = state.groups.find(group => (group.id === treeItem.id));
-      const id = `${Math.random()}`;
-      const color = generateRandomColor();
-      const filter = {
-        isHighlighted: true,
-        isShown: true,
-        regex: new RegExp(regexStr),
-        color: color,
-        id,
-        iconPath: generateSvgUri(color, true),
-        count: 0,
-      };
-      group!.filters.push(filter);
+export async function addFilter(treeItem: vscode.TreeItem, state: State) {
+  let group = state.groups.find(candidate => candidate.id === treeItem.id);
+  if (!group) {
+    return;
+  }
+  const destination = state.settingsManager ? await chooseStorageFile(state, 'Store Filter in Which File?') : undefined;
+  if (state.settingsManager && !destination) {
+    return;
+  }
+  const regexStr = await vscode.window.showInputBox({
+    prompt: "[FILTER] Type a regex to filter",
+    ignoreFocusOut: false,
+    validateInput: validateRegex
+  });
+  if (regexStr === undefined) {
+    return;
+  }
+  if (destination && state.settingsManager && group.sourcePath !== destination) {
+    const project = state.settingsManager.selectedProject(destination, state);
+    const groupName = group.name;
+    const existingGroup = project.groups.find(candidate => candidate.name === groupName);
+    if (existingGroup) {
+      group = existingGroup;
+    } else {
+      group = { ...group, id: `${Math.random()}`, sourcePath: destination, filters: [] };
+      project.groups.push(group);
+    }
+  }
+  const id = `${Math.random()}`;
+  const color = generateRandomColor();
+  const filter = {
+    sourcePath: destination,
+    isHighlighted: true,
+    isShown: true,
+    regex: new RegExp(regexStr),
+    color: color,
+    id,
+    iconPath: generateSvgUri(color, true),
+    count: 0,
+  };
+  group.filters.push(filter);
+  state.settingsManager?.updateState(state);
+  state.focusProvider.update(state.groups);
+  refreshEditorsDebounced(state, undefined, 50);
+}
 
-      // Update the focus provider with the new filter groups
-      state.focusProvider.update(state.groups);
-      
-      const parentItem = state.filterTreeViewProvider.getParentItem(treeItem);
-      refreshEditorsDebounced(state, parentItem, 50);
-    });
+function validateRegex(value: string): string | undefined {
+  try {
+    new RegExp(value);
+    return undefined;
+  } catch (error) {
+    return String(error);
+  }
 }
 
 export function editFilter(treeItem: vscode.TreeItem, state: State) {
@@ -637,6 +660,7 @@ export function refreshEditors(state: State, treeItem?: vscode.TreeItem) {
   console.log("refreshEditors");
   state.filterTreeViewProvider.refresh(treeItem);
   state.exFilterTreeViewProvider.refresh(treeItem);
+  state.settingsManager?.refreshFiles();
 }
 
 // Performance optimized debounced version for rapid changes
@@ -649,6 +673,7 @@ export function refreshEditorsDebounced(state: State, treeItem?: vscode.TreeItem
 export function refreshFilterTreeView(state: State, treeItem?: vscode.TreeItem) {
   console.log("refresh only tree view");
   state.filterTreeViewProvider.refresh(treeItem);
+  state.settingsManager?.refreshFiles();
 }
 
 export function updateFilterTreeViewAndFocusProvider(state: State) {
@@ -660,27 +685,37 @@ export function updateFilterTreeViewAndFocusProvider(state: State) {
 export function updateProjectTreeView(state: State) {
   console.log("update project tree view");
   state.projectTreeViewProvider.update(state.projects);
+  state.settingsManager?.refreshFiles();
 }
 
-export function addGroup(state: State) {
-  vscode.window.showInputBox({
+export async function addGroup(state: State) {
+  const destination = state.settingsManager ? await chooseStorageFile(state, 'Store Group in Which File?') : undefined;
+  if (state.settingsManager && !destination) {
+    return;
+  }
+  const name = await vscode.window.showInputBox({
     prompt: '[GROUP] Type a new group name',
     ignoreFocusOut: false
-  }).then(name => {
-    if (name === undefined) {
-      return;
-    }
-    const id = `${Math.random()}`;
-    const group = {
-      filters: [],
-      isHighlighted: true,
-      isShown: true,
-      name: name,
-      id
-    };
-    state.groups.push(group);
-    refreshFilterTreeView(state);
   });
+  if (name === undefined) {
+    return;
+  }
+  const id = `${Math.random()}`;
+  const group = {
+    sourcePath: destination,
+    filters: [],
+    isHighlighted: true,
+    isShown: true,
+    name: name,
+    id
+  };
+  if (destination && state.settingsManager) {
+    state.settingsManager.selectedProject(destination, state).groups.push(group);
+    state.settingsManager.updateState(state);
+  } else {
+    state.groups.push(group);
+  }
+  refreshFilterTreeView(state);
 }
 
 export function editGroup(treeItem: vscode.TreeItem, state: State) {
@@ -700,6 +735,17 @@ export function editGroup(treeItem: vscode.TreeItem, state: State) {
 }
 
 export function deleteGroup(treeItem: vscode.TreeItem, state: State) {
+  if (state.settingsManager) {
+    for (const project of state.projects) {
+      const groupIndex = project.groups.findIndex(group => group.id === treeItem.id);
+      if (groupIndex !== -1) {
+        project.groups.splice(groupIndex, 1);
+      }
+    }
+    state.settingsManager.updateState(state);
+    refreshEditors(state);
+    return;
+  }
   const deleteIndex = state.groups.findIndex(group => (group.id === treeItem.id));
   if (deleteIndex !== -1) {
     state.groups.splice(deleteIndex, 1);
@@ -708,6 +754,9 @@ export function deleteGroup(treeItem: vscode.TreeItem, state: State) {
 }
 
 export function saveProject(state: State) {
+  if (state.settingsManager) {
+    return saveProjectSettings(undefined, state);
+  }
   const selected = state.projects.find(p => (p.selected === true));
   if (selected === undefined) {
     vscode.window.showErrorMessage('There is no selected project');
@@ -720,26 +769,32 @@ export function saveProject(state: State) {
   setStatusBarMessage(`Project(${selected.name}) is saved.`);
 }
 
-export function addProject(state: State) {
-  vscode.window.showInputBox({
+export async function addProject(state: State) {
+  const destination = state.settingsManager ? await chooseStorageFile(state, 'Store Project in Which File?') : undefined;
+  if (state.settingsManager && !destination) {
+    return;
+  }
+  const name = await vscode.window.showInputBox({
     prompt: "[PROJECT] Type a new project name",
     ignoreFocusOut: false
-  }).then(name => {
-    if (name === undefined) {
-      return;
-    }
-
-    const project = {
-      groups: [],
-      name,
-      id: `${Math.random()}`,
-      selected: false
-    };
-
-    state.projects.push(project);
-    saveSettings(state.globalStorageUri, state.projects, state.exFilters);
-    updateProjectTreeView(state);
   });
+  if (name === undefined) {
+    return;
+  }
+
+  const project = {
+    sourcePath: destination,
+    groups: [],
+    name,
+    id: `${Math.random()}`,
+    selected: false
+  };
+
+  state.projects.push(project);
+  if (!state.settingsManager) {
+    saveSettings(state.globalStorageUri, state.projects, state.exFilters);
+  }
+  updateProjectTreeView(state);
 }
 
 export function editProject(treeItem: vscode.TreeItem, state: State, callback: () => void) {
@@ -756,7 +811,9 @@ export function editProject(treeItem: vscode.TreeItem, state: State, callback: (
       const findIndex = state.projects.findIndex(project => (project.id === treeItem.id));
       if (findIndex !== -1) {
         state.projects[findIndex].name = name;
-        saveSettings(state.globalStorageUri, state.projects, state.exFilters);
+        if (!state.settingsManager) {
+          saveSettings(state.globalStorageUri, state.projects, state.exFilters);
+        }
         updateProjectTreeView(state);
 
         callback();
@@ -765,6 +822,13 @@ export function editProject(treeItem: vscode.TreeItem, state: State, callback: (
 }
 
 export async function handleLastProjectDeletion(treeItem: vscode.TreeItem, state: State) {
+  if (state.settingsManager) {
+    const choice = await vscode.window.showWarningMessage('Delete this project and its filters?', { modal: true }, 'Delete');
+    if (choice === 'Delete') {
+      deleteProject(treeItem, state);
+    }
+    return;
+  }
   if (state.projects.length !== 1) {
     deleteProject(treeItem, state);
     return;
@@ -787,6 +851,22 @@ export async function handleLastProjectDeletion(treeItem: vscode.TreeItem, state
 }
 
 export function deleteProject(treeItem: vscode.TreeItem, state: State) {
+  if (state.settingsManager) {
+    const project = state.projects.find(candidate => candidate.id === treeItem.id);
+    if (!project) {
+      return;
+    }
+    state.projects.splice(state.projects.indexOf(project), 1);
+    const remaining = state.projects.filter(candidate => candidate.sourcePath === project.sourcePath);
+    if (remaining.length === 0) {
+      state.projects.push({ name: 'NONAME', id: `${Math.random()}`, selected: true, groups: [], sourcePath: project.sourcePath });
+    } else if (project.selected) {
+      remaining[0].selected = true;
+    }
+    state.settingsManager.updateState(state);
+    refreshEditors(state);
+    return;
+  }
   const selectedIndex = getProjectSelectedIndex(state.projects);
   const deleteIndex = state.projects.findIndex(project => (project.id === treeItem.id));
   if (deleteIndex !== -1) {
@@ -853,6 +933,17 @@ export function refreshSettings(state: State) {
 }
 
 export function selectProject(treeItem: vscode.TreeItem, state: State): boolean {
+  if (state.settingsManager) {
+    const project = state.projects.find(candidate => candidate.id === treeItem.id);
+    if (!project) {
+      return false;
+    }
+    state.projects.filter(candidate => candidate.sourcePath === project.sourcePath)
+      .forEach(candidate => candidate.selected = candidate === project);
+    state.settingsManager.updateState(state);
+    refreshEditors(state);
+    return true;
+  }
   const prevSelectedIndex = getProjectSelectedIndex(state.projects);
   const newSelectedIndex = state.projects.findIndex(p => p.id === treeItem.id);
   if (newSelectedIndex !== -1) {
@@ -885,6 +976,11 @@ export function selectProject(treeItem: vscode.TreeItem, state: State): boolean 
 }
 
 export function updateExplorerTitle(view: vscode.TreeView<vscode.TreeItem>, state: State) {
+  if (state.settingsManager) {
+    const count = state.settingsManager.getFiles(state).filter(file => file.loaded).length;
+    view.title = `Filters+ (${count} files)`;
+    return;
+  }
   const selectedIndex = getProjectSelectedIndex(state.projects);
   if (selectedIndex === -1) {
     view.title = 'Filters+';
@@ -893,104 +989,115 @@ export function updateExplorerTitle(view: vscode.TreeView<vscode.TreeItem>, stat
   }
 }
 
-export function addExFilter(state: State) {
-  vscode.window.showInputBox({
+export async function addExFilter(state: State) {
+  const destination = state.settingsManager ? await chooseStorageFile(state, 'Store Exclusion in Which File?') : undefined;
+  if (state.settingsManager && !destination) {
+    return;
+  }
+  const regexStr = await vscode.window.showInputBox({
     prompt: "[FILTER] Type a regex to exclusion filter",
-    ignoreFocusOut: false
-  }).then(regexStr => {
-    if (regexStr === undefined) {
-      return;
-    }
-    const id = `${Math.random()}`;
-    const exFilter = {
-      isHighlighted: false, // don't care
-      isShown: true,
-      regex: new RegExp(regexStr),
-      color: generateRandomColor(), // don't care
-      id,
-      iconPath: generateSvgUri(generateRandomColor(), false),
-      count: 0 // don't care
-    };
-
-    state.exFilters.push(exFilter);
-    refreshEditors(state);
+    ignoreFocusOut: false,
+    validateInput: validateRegex
   });
+  if (regexStr === undefined) {
+    return;
+  }
+  const id = `${Math.random()}`;
+  const color = generateRandomColor();
+  const exFilter = {
+    sourcePath: destination,
+    isHighlighted: false,
+    isShown: true,
+    regex: new RegExp(regexStr),
+    color,
+    id,
+    iconPath: generateSvgUri(color, false),
+    count: 0
+  };
+
+  state.exFilters.push(exFilter);
+  refreshEditors(state);
 }
 
-export function deleteExGroup(state: State) {
-  state.exFilters.splice(0, state.exFilters.length);
+export async function deleteExGroup(state: State) {
+  const destination = state.settingsManager ? await chooseStorageFile(state, 'Clear Exclusions from Which File?') : undefined;
+  if (state.settingsManager && !destination) {
+    return;
+  }
+  state.exFilters.splice(0, state.exFilters.length, ...state.exFilters.filter(filter => destination && filter.sourcePath !== destination));
   refreshEditors(state);
 }
 
 // Project Settings Management Commands
 
+export async function chooseStorageFile(state: State, title: string, externalOnly = false): Promise<string | undefined> {
+  const files = state.settingsManager?.getFiles(state).filter(file => file.loaded && (!externalOnly || !file.internal)) || [];
+  const options = files.map(file => ({
+    label: file.internal ? 'Internal Settings' : path.basename(file.path),
+    description: file.path,
+    detail: file.dirty ? 'Unsaved filter changes' : (file.internal ? 'Internal storage' : 'Loaded external file'),
+    filePath: file.path
+  }));
+  const choice = await vscode.window.showQuickPick(options, { title, matchOnDescription: true, ignoreFocusOut: true });
+  return choice?.filePath;
+}
+
+async function confirmFileReplacement(filePath: string, state: State, action: string): Promise<boolean> {
+  if (!state.settingsManager?.isDirty(filePath, state)) {
+    return true;
+  }
+  const choice = await vscode.window.showWarningMessage(`Unsaved filters in ${filePath}`, { modal: true },
+    `Save and ${action}`, `Discard and ${action}`, 'Cancel');
+  if (choice === `Save and ${action}`) {
+    return state.settingsManager.saveFile(filePath, state);
+  }
+  return choice === `Discard and ${action}`;
+}
+
 export async function loadProjectSettings(context: vscode.ExtensionContext, state: State) {
-  const manager = ProjectSettingsManager.getInstance(context);
+  const manager = state.settingsManager || ProjectSettingsManager.getInstance(context);
   
   const options: vscode.OpenDialogOptions = {
-    canSelectMany: false,
-    openLabel: 'Load Project Settings',
+    canSelectMany: true,
+    openLabel: 'Load Settings Files',
     filters: {
       'JSON Files': ['json'],
       'All Files': ['*']
     }
   };
 
-  const fileUri = await vscode.window.showOpenDialog(options);
-  if (fileUri && fileUri[0]) {
-    const settings = await manager.loadProjectSettings(fileUri[0].fsPath);
-    if (settings && await manager.applyProjectSettings(settings, state)) {
-      // Refresh the UI to reflect filter changes
-      refreshEditors(state);
+  const fileUris = await vscode.window.showOpenDialog(options);
+  for (const fileUri of fileUris || []) {
+    if (manager.getFiles(state).some(file => file.path === fileUri.fsPath && file.loaded)) {
+      continue;
     }
+    await manager.loadFile(fileUri.fsPath, state);
   }
+  refreshEditors(state);
 }
 
-export async function saveProjectSettings(context: vscode.ExtensionContext, state: State) {
-  const manager = ProjectSettingsManager.getInstance(context);
-  const currentPath = manager.getCurrentSettingsPath();
-
-  const options: vscode.QuickPickItem[] = [];
-
-  // If an external file is already loaded, offer to save to it
-  if (currentPath) {
-    options.push({
-      label: "Save to Current Shared File",
-      description: currentPath,
-      detail: "Save filters and settings to the currently loaded shared file"
-    });
+export async function saveProjectSettings(context: vscode.ExtensionContext | undefined, state: State, filePath?: string) {
+  const manager = state.settingsManager || ProjectSettingsManager.getInstance(context);
+  const destination = filePath || await chooseStorageFile(state, 'Save to Which File?');
+  if (!destination) {
+    return;
   }
-
-  options.push(
-    {
-      label: "Save to External Project File",
-      description: "Create shareable JSON settings file",
-      detail: "Save filters and settings to external file for team sharing"
-    },
-    {
-      label: "Save to Internal Project",
-      description: "Save to VS Code extension storage",
-      detail: "Save filter groups to currently selected internal project"
-    }
-  );
-
+  const options: Array<vscode.QuickPickItem & { section: SaveSection }> = [
+    { label: 'Filters, Exclusions and Settings', section: 'all' },
+    { label: 'Filters Only', section: 'filters' },
+    { label: 'Exclusion Filters Only', section: 'exclusions' },
+    { label: 'Settings Only', section: 'settings' }
+  ];
   const choice = await vscode.window.showQuickPick(options, {
-    placeHolder: "Choose how to save your project settings",
-    title: "Project Settings Save Options"
+    title: `Save to ${destination}`, placeHolder: 'What should be saved?', ignoreFocusOut: true
   });
-
-  if (choice?.label === "Save to Current Shared File") {
-    await manager.saveProjectSettings(undefined, state);
-  } else if (choice?.label === "Save to External Project File") {
-    await createProjectSettings(context, state);
-  } else if (choice?.label === "Save to Internal Project") {
-    // Call the original saveProject functionality
-    saveProject(state);
+  if (choice) {
+    await manager.saveFile(destination, state, choice.section);
   }
 }
 
 export async function createProjectSettings(context: vscode.ExtensionContext, state?: State) {
-  const manager = ProjectSettingsManager.getInstance(context);
+  const manager = state?.settingsManager || ProjectSettingsManager.getInstance(context);
   
   const options: vscode.SaveDialogOptions = {
     defaultUri: vscode.workspace.workspaceFolders?.[0]?.uri,
@@ -998,38 +1105,28 @@ export async function createProjectSettings(context: vscode.ExtensionContext, st
       'JSON Files': ['json'],
       'All Files': ['*']
     },
-    saveLabel: 'Create Project Settings'
+    saveLabel: 'Create Empty Settings File'
   };
 
   const fileUri = await vscode.window.showSaveDialog(options);
-  if (fileUri) {
-    await manager.saveProjectSettings(fileUri.fsPath, state);
+  if (fileUri && state) {
+    await manager.createFile(fileUri.fsPath, state);
+    refreshEditors(state);
   }
 }
 
-export async function unloadSharedFilterFile(context: vscode.ExtensionContext, state: State) {
-  const manager = ProjectSettingsManager.getInstance(context);
-  const settingsPath = manager.getCurrentSettingsPath();
-
-  if (!settingsPath) {
-    vscode.window.showWarningMessage('No shared filter file is currently loaded.');
-    return;
-  }
-
-  const confirm = await vscode.window.showWarningMessage(
-    `Unload shared filter file: ${path.basename(settingsPath)}?`,
-    'Unload', 'Cancel'
-  );
-
-  if (confirm === 'Unload') {
-    await manager.clearSettingsPath();
-    vscode.window.showInformationMessage('$(check) Shared filter file unloaded. Using internal settings only.');
+export async function unloadSharedFilterFile(context: vscode.ExtensionContext, state: State, filePath?: string) {
+  const manager = state.settingsManager || ProjectSettingsManager.getInstance(context);
+  const destination = filePath || await chooseStorageFile(state, 'Unload Which File?', true);
+  if (destination && await confirmFileReplacement(destination, state, 'Unload')) {
+    await manager.unloadFile(destination, state);
+    refreshEditors(state);
   }
 }
 
-export async function openSharedFilterFile(context: vscode.ExtensionContext) {
-  const manager = ProjectSettingsManager.getInstance(context);
-  const settingsPath = manager.getCurrentSettingsPath();
+export async function openSharedFilterFile(context: vscode.ExtensionContext, state?: State, filePath?: string) {
+  const settingsPath = filePath || (state ? await chooseStorageFile(state, 'Open Settings File')
+    : ProjectSettingsManager.getInstance(context).getCurrentSettingsPath());
 
   if (!settingsPath) {
     vscode.window.showWarningMessage('No shared filter file loaded. Use "Load Shared Filter File" first.');
@@ -1044,25 +1141,15 @@ export async function openSharedFilterFile(context: vscode.ExtensionContext) {
   }
 }
 
-export async function refreshProjectSettings(context: vscode.ExtensionContext, state: State) {
-  const manager = ProjectSettingsManager.getInstance(context);
-  const sharedPath = manager.getCurrentSettingsPath();
-
-  if (sharedPath) {
-    const settings = await manager.loadProjectSettings();
-    if (!settings || !await manager.applyProjectSettings(settings, state)) {
-      return;
+export async function refreshProjectSettings(context: vscode.ExtensionContext, state: State, filePath?: string) {
+  const manager = state.settingsManager || ProjectSettingsManager.getInstance(context);
+  const paths = filePath ? [filePath] : manager.getFiles(state).map(file => file.path);
+  for (const sourcePath of paths) {
+    if (await confirmFileReplacement(sourcePath, state, 'Reload')) {
+      await manager.loadFile(sourcePath, state);
     }
-    refreshEditors(state);
-  } else if (!refreshSettings(state)) {
-    return;
   }
-
-  vscode.window.showInformationMessage(
-    sharedPath
-      ? `$(refresh) Refreshed shared file: ${sharedPath}`
-      : `$(refresh) Refreshed internal settings`
-  );
+  refreshEditors(state);
 }
 
 export async function importInternalProjects(context: vscode.ExtensionContext, state: State) {

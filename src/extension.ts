@@ -31,7 +31,8 @@ import {
   unloadSharedFilterFile,
   showProjectSettingsInfo,
   openProjectSettingsManager,
-  importInternalProjects
+  importInternalProjects,
+  chooseStorageFile
 } from "./commands";
 import { FilterTreeViewProvider } from "./filterTreeViewProvider";
 import { ProjectTreeViewProvider } from "./projectTreeViewProvider";
@@ -41,8 +42,10 @@ import { Project, Group, Filter } from "./utils";
 import { openSettings } from "./settings";
 import { DocumentCacheManager } from "./documentCache";
 import { ProjectSettingsManager } from "./projectSettingsManager";
+import { StorageFileItem, StorageFilesTreeViewProvider } from "./storageFilesTreeViewProvider";
 
 export type State = {
+  settingsManager?: ProjectSettingsManager;
   inFocusMode: boolean;
   projects: Project[];
   groups: Group[];
@@ -101,15 +104,34 @@ export async function activate(context: vscode.ExtensionContext) {
     })
   };
 
-  refreshSettings(state);
-
   const settingsManager = ProjectSettingsManager.getInstance(context);
-  if (settingsManager.getCurrentSettingsPath()) {
-    const settings = await settingsManager.loadProjectSettings();
-    if (settings && await settingsManager.applyProjectSettings(settings, state)) {
-      refreshEditors(state);
-    }
-  }
+  await settingsManager.initializeFiles(state);
+  refreshEditors(state);
+
+  const filePathFromItem = (item?: StorageFileItem | string) => typeof item === 'string' ? item : item?.filePath;
+  context.subscriptions.push(
+    vscode.window.createTreeView('filters-gamma.files', { treeDataProvider: new StorageFilesTreeViewProvider(settingsManager, state) }),
+    vscode.commands.registerCommand('log-analysis-gamma.openStorageFile', (item?: StorageFileItem | string) =>
+      openSharedFilterFile(context, state, filePathFromItem(item))),
+    vscode.commands.registerCommand('log-analysis-gamma.saveStorageFile', (item?: StorageFileItem | string) =>
+      saveProjectSettings(context, state, filePathFromItem(item))),
+    vscode.commands.registerCommand('log-analysis-gamma.reloadStorageFile', (item?: StorageFileItem | string) =>
+      refreshProjectSettings(context, state, filePathFromItem(item))),
+    vscode.commands.registerCommand('log-analysis-gamma.copyStoragePath', async (item?: StorageFileItem | string) => {
+      const filePath = filePathFromItem(item) || await chooseStorageFile(state, 'Copy Which File Path?');
+      if (filePath) {
+        await vscode.env.clipboard.writeText(filePath);
+      }
+    }),
+    vscode.commands.registerCommand('log-analysis-gamma.createStorageFile', () => createProjectSettings(context, state)),
+    vscode.commands.registerCommand('log-analysis-gamma.applyStorageSettings', async (item?: StorageFileItem | string) => {
+      const filePath = filePathFromItem(item) || await chooseStorageFile(state, 'Apply Settings from Which File?');
+      if (filePath && await settingsManager.applyFileConfiguration(filePath)) {
+        refreshEditors(state);
+        vscode.window.showInformationMessage(`Applied settings from ${filePath}`);
+      }
+    })
+  );
 
   //tell vs code to open focus-gamma:... uris with state.focusProvider
   const disposableFocus = vscode.workspace.registerTextDocumentContentProvider(
@@ -240,6 +262,7 @@ export async function activate(context: vscode.ExtensionContext) {
     state.projectTreeViewProvider);
 
   updateExplorerTitle(view, state);
+  context.subscriptions.push(settingsManager.onDidChangeFiles(() => updateExplorerTitle(view, state)));
 
   //Add events listener
   var disposableOnDidChangeVisibleTextEditors =
@@ -328,8 +351,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
   let disposableRefreshSettings = vscode.commands.registerCommand(
     "log-analysis-gamma.refreshSettings",
-    () => {
-      refreshSettings(state);
+    async () => {
+      await refreshProjectSettings(context, state);
       updateExplorerTitle(view, state);
     });
   context.subscriptions.push(disposableRefreshSettings);
@@ -519,6 +542,18 @@ export async function activate(context: vscode.ExtensionContext) {
     () => openPerformanceSettings());
   context.subscriptions.push(disposableOpenPerformanceSettings);
 
+  context.subscriptions.push(
+    vscode.commands.registerCommand('log-analysis-gamma.showProjectFilePaths', () =>
+      vscode.workspace.getConfiguration('logAnalysisGamma').update('showProjectFilePaths', true, vscode.ConfigurationTarget.Global)),
+    vscode.commands.registerCommand('log-analysis-gamma.hideProjectFilePaths', () =>
+      vscode.workspace.getConfiguration('logAnalysisGamma').update('showProjectFilePaths', false, vscode.ConfigurationTarget.Global)),
+    vscode.workspace.onDidChangeConfiguration(event => {
+      if (event.affectsConfiguration('logAnalysisGamma.showProjectFilePaths')) {
+        state.projectTreeViewProvider.refresh();
+      }
+    })
+  );
+
   // Unified Project Settings Management Commands
   let disposableLoadUnifiedSettings = vscode.commands.registerCommand(
     "log-analysis-gamma.loadUnifiedSettings", 
@@ -537,12 +572,12 @@ export async function activate(context: vscode.ExtensionContext) {
 
   let disposableOpenSharedFilterFile = vscode.commands.registerCommand(
     "log-analysis-gamma.openUnifiedSettings",
-    () => openSharedFilterFile(context));
+    () => openSharedFilterFile(context, state));
   context.subscriptions.push(disposableOpenSharedFilterFile);
 
   let disposableUnloadSharedFilterFile = vscode.commands.registerCommand(
     "log-analysis-gamma.unloadUnifiedSettings",
-    () => unloadSharedFilterFile(context, state));
+    (item?: StorageFileItem | string) => unloadSharedFilterFile(context, state, filePathFromItem(item)));
   context.subscriptions.push(disposableUnloadSharedFilterFile);
 }
 

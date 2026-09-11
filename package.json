@@ -37,6 +37,54 @@
   "contributes": {
     "commands": [
       {
+        "command": "log-analysis-gamma.showProjectFilePaths",
+        "title": "Show Project File Paths",
+        "icon": "$(eye)",
+        "category": "Smart Log Highlighter"
+      },
+      {
+        "command": "log-analysis-gamma.hideProjectFilePaths",
+        "title": "Hide Project File Paths",
+        "icon": "$(eye-closed)",
+        "category": "Smart Log Highlighter"
+      },
+      {
+        "command": "log-analysis-gamma.openStorageFile",
+        "title": "Open Settings File",
+        "icon": "$(go-to-file)",
+        "category": "Smart Log Highlighter"
+      },
+      {
+        "command": "log-analysis-gamma.copyStoragePath",
+        "title": "Copy Settings File Path",
+        "icon": "$(copy)",
+        "category": "Smart Log Highlighter"
+      },
+      {
+        "command": "log-analysis-gamma.saveStorageFile",
+        "title": "Save to This File...",
+        "icon": "$(save)",
+        "category": "Smart Log Highlighter"
+      },
+      {
+        "command": "log-analysis-gamma.reloadStorageFile",
+        "title": "Reload Settings File",
+        "icon": "$(refresh)",
+        "category": "Smart Log Highlighter"
+      },
+      {
+        "command": "log-analysis-gamma.createStorageFile",
+        "title": "Create Empty Settings File",
+        "icon": "$(new-file)",
+        "category": "Smart Log Highlighter"
+      },
+      {
+        "command": "log-analysis-gamma.applyStorageSettings",
+        "title": "Apply Settings from This File",
+        "icon": "$(gear)",
+        "category": "Smart Log Highlighter"
+      },
+      {
         "command": "log-analysis-gamma.addGroup",
         "title": "Add Group",
         "icon": "$(file-directory-create)"
@@ -186,6 +234,36 @@
     "menus": {
       "view/item/context": [
         {
+          "command": "log-analysis-gamma.openStorageFile",
+          "when": "view == filters-gamma.files",
+          "group": "inline@1"
+        },
+        {
+          "command": "log-analysis-gamma.saveStorageFile",
+          "when": "view == filters-gamma.files && viewItem =~ /-loaded$/",
+          "group": "inline@2"
+        },
+        {
+          "command": "log-analysis-gamma.unloadUnifiedSettings",
+          "when": "view == filters-gamma.files && viewItem =~ /^external-/",
+          "group": "inline@3"
+        },
+        {
+          "command": "log-analysis-gamma.copyStoragePath",
+          "when": "view == filters-gamma.files",
+          "group": "file@1"
+        },
+        {
+          "command": "log-analysis-gamma.reloadStorageFile",
+          "when": "view == filters-gamma.files",
+          "group": "file@2"
+        },
+        {
+          "command": "log-analysis-gamma.applyStorageSettings",
+          "when": "view == filters-gamma.files && viewItem =~ /-loaded$/",
+          "group": "file@3"
+        },
+        {
           "command": "log-analysis-gamma.addFilter",
           "when": "view == filters-gamma && viewItem =~ /^g-/",
           "group": "inline@1"
@@ -247,6 +325,31 @@
         }
       ],
       "view/title": [
+        {
+          "command": "log-analysis-gamma.showProjectFilePaths",
+          "when": "view == filters-gamma.settings && !config.logAnalysisGamma.showProjectFilePaths",
+          "group": "navigation@9"
+        },
+        {
+          "command": "log-analysis-gamma.hideProjectFilePaths",
+          "when": "view == filters-gamma.settings && config.logAnalysisGamma.showProjectFilePaths",
+          "group": "navigation@9"
+        },
+        {
+          "command": "log-analysis-gamma.loadUnifiedSettings",
+          "when": "view == filters-gamma.files",
+          "group": "navigation@1"
+        },
+        {
+          "command": "log-analysis-gamma.createStorageFile",
+          "when": "view == filters-gamma.files",
+          "group": "navigation@2"
+        },
+        {
+          "command": "log-analysis-gamma.refreshUnifiedSettings",
+          "when": "view == filters-gamma.files",
+          "group": "navigation@3"
+        },
         {
           "command": "log-analysis-gamma.addGroup",
           "when": "view == filters-gamma",
@@ -319,6 +422,10 @@
     "views": {
       "filter_gamma_project_setting": [
         {
+          "id": "filters-gamma.files",
+          "name": "Storage Files"
+        },
+        {
           "id": "filters-gamma.settings",
           "name": "Projects"
         },
@@ -344,6 +451,12 @@
     "configuration": {
       "title": "Smart Log Highlighter",
       "properties": {
+        "logAnalysisGamma.showProjectFilePaths": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show storage file paths beside project names in the Projects view. Full paths remain available in tooltips when hidden.",
+          "scope": "application"
+        },
         "logAnalysisGamma.userColors": {
           "type": "array",
           "items": {

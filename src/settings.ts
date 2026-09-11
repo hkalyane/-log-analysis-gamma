@@ -92,7 +92,7 @@ export function deserializeProject(project: StoredProject): Project {
     };
 }
 
-function getSettingFile(storageUri: vscode.Uri): string {
+export function getSettingFile(storageUri: vscode.Uri): string {
     const storagePath: string = storageUri.fsPath;
 
     // Create the directory if it does not exist
@@ -138,6 +138,7 @@ export function saveSettings(storageUri: vscode.Uri, projects: Project[], exFilt
     const settingFile = getSettingFile(storageUri);
 
     const content = JSON.stringify({
+        ...(fs.existsSync(settingFile) ? JSON.parse(fs.readFileSync(settingFile, 'utf8')) : {}),
         projects: projects.map(serializeProject),
         exclusionFilters: exFilters.map(serializeFilter)
     }, null, 2);
